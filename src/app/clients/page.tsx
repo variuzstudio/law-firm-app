@@ -80,7 +80,7 @@ export default function ClientsPage() {
               <div key={c.id} className="glass-card p-4 flex flex-col">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                       {c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                     </div>
                     <div>
@@ -128,7 +128,7 @@ export default function ClientsPage() {
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)]"><X className="w-5 h-5 text-[var(--text-muted)]" /></button>
             </div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
                 {selectedClient.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
               </div>
               <div>

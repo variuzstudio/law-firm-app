@@ -94,7 +94,7 @@ export default function SettingsPage() {
               <div className="glass-card p-6 space-y-4">
                 <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('settings.profile')}</h2>
                 <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--accent-light)]">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xl font-bold">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold">
                     AF
                   </div>
                   <div>

@@ -44,9 +44,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-slate-100 to-blue-100 dark:from-slate-950 dark:via-[#0f172a] dark:to-[#162033]" />
-      <div className="absolute top-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-blue-400/10 dark:bg-blue-500/5 blur-3xl" />
-      <div className="absolute bottom-[20%] -right-[10%] w-[400px] h-[400px] rounded-full bg-indigo-400/10 dark:bg-indigo-500/5 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 dark:from-[#060610] dark:via-[#0a0a1e] dark:to-[#0d1025]" />
+      <div className="absolute top-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-cyan-400/8 dark:bg-cyan-500/5 blur-3xl" />
+      <div className="absolute bottom-[20%] -right-[10%] w-[400px] h-[400px] rounded-full bg-purple-400/8 dark:bg-purple-500/5 blur-3xl" />
+      <div className="absolute top-[60%] left-[50%] w-[300px] h-[300px] rounded-full dark:bg-blue-600/3 blur-3xl" />
 
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
         {mounted && (
@@ -69,7 +70,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="glass-card p-8 sm:p-10">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25 mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 mb-4">
               <Scale className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('login.title')}</h1>

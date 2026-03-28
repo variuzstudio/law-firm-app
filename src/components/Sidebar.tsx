@@ -95,10 +95,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <div className="flex flex-col h-full bg-gradient-to-b from-slate-100/90 via-slate-200/70 to-slate-300/50 dark:from-slate-900/90 dark:via-slate-800/70 dark:to-[#162033]/90 border-r border-[var(--border-color)] backdrop-blur-xl">
+        <div className="flex flex-col h-full bg-gradient-to-b from-white/70 via-slate-100/50 to-slate-200/40 dark:from-[#0a0a1e]/95 dark:via-[#0d1025]/90 dark:to-[#0a0a1e]/95 border-r border-[var(--card-border)] backdrop-blur-2xl">
           <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                 <Scale className="w-[18px] h-[18px] text-white" />
               </div>
               <div>
@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className="p-2.5 border-t border-[var(--border-color)]">
             <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--bg-card)]">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {user?.avatar}
               </div>
               <div className="min-w-0 flex-1">

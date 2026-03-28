@@ -1,16 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useLanguage } from '@/context/LanguageContext'
+import Link from 'next/link'
 import {
-  Menu,
-  Sun,
-  Moon,
-  Globe,
-  Bell,
-  Search,
-  ChevronDown,
+  Menu, Sun, Moon, Globe, Bell, Search, ChevronDown, ChevronLeft, Scale,
 } from 'lucide-react'
 
 interface HeaderProps {
@@ -20,12 +16,16 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const { language, setLanguage, t } = useLanguage()
+  const router = useRouter()
+  const pathname = usePathname()
   const [langOpen, setLangOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [searchFocused, setSearchFocused] = useState(false)
   const [mounted, setMounted] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
+
+  const isDashboard = pathname === '/dashboard'
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -46,9 +46,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
   ]
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border-color)] bg-[var(--bg-card)] backdrop-blur-xl">
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 border-b border-[var(--border-color)] bg-[var(--bg-card)] backdrop-blur-2xl">
+      <div className="flex items-center justify-between h-14 px-3 lg:px-6">
+        <div className="flex items-center gap-2">
           <button
             onClick={onMenuClick}
             className="p-2 rounded-xl hover:bg-[var(--accent-light)] transition-colors lg:hidden"
@@ -56,29 +56,48 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <Menu className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
 
-          <div className={`relative hidden sm:block transition-all duration-200 ${searchFocused ? 'w-80' : 'w-64'}`}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+          {!isDashboard && (
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-xl hover:bg-[var(--accent-light)] transition-colors lg:hidden"
+              title={t('common.back')}
+            >
+              <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+            </button>
+          )}
+
+          <Link href="/dashboard" className="flex items-center gap-2 mr-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+              <Scale className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-sm font-bold text-[var(--text-primary)] hidden sm:inline">Salomo Partners</span>
+          </Link>
+
+          <div className="h-5 w-px bg-[var(--border-color)] mx-1 hidden sm:block" />
+
+          <div className={`relative hidden sm:block transition-all duration-200 ${searchFocused ? 'w-72' : 'w-56'}`}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
             <input
               type="text"
               placeholder={t('common.search') + '...'}
-              className="glass-input pl-10 py-2 text-sm"
+              className="glass-input pl-9 py-1.5 text-sm"
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {mounted && (
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2.5 rounded-xl hover:bg-[var(--accent-light)] transition-all duration-200"
+              className="p-2 rounded-xl hover:bg-[var(--accent-light)] transition-all duration-200"
               title={theme === 'dark' ? t('settings.light') : t('settings.dark')}
             >
               {theme === 'dark' ? (
-                <Sun className="w-[18px] h-[18px] text-amber-400" />
+                <Sun className="w-[17px] h-[17px] text-amber-400" />
               ) : (
-                <Moon className="w-[18px] h-[18px] text-slate-500" />
+                <Moon className="w-[17px] h-[17px] text-slate-500" />
               )}
             </button>
           )}
@@ -86,16 +105,16 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <div ref={langRef} className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
-              className="flex items-center gap-1.5 p-2 px-3 rounded-xl hover:bg-[var(--accent-light)] transition-all duration-200"
+              className="flex items-center gap-1 p-2 px-2.5 rounded-xl hover:bg-[var(--accent-light)] transition-all duration-200"
             >
-              <Globe className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-              <span className="text-sm font-medium text-[var(--text-secondary)] hidden sm:inline">
+              <Globe className="w-[17px] h-[17px] text-[var(--text-secondary)]" />
+              <span className="text-xs font-medium text-[var(--text-secondary)] hidden sm:inline">
                 {language === 'en' ? 'EN' : 'ID'}
               </span>
               <ChevronDown className="w-3 h-3 text-[var(--text-muted)]" />
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-2 w-40 glass-card p-1.5 shadow-elegant-lg">
+              <div className="absolute right-0 top-full mt-2 w-40 glass-card p-1.5 shadow-elegant-lg z-50">
                 <button
                   onClick={() => { setLanguage('en'); setLangOpen(false) }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors ${
@@ -119,13 +138,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <div ref={notifRef} className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative p-2.5 rounded-xl hover:bg-[var(--accent-light)] transition-all duration-200"
+              className="relative p-2 rounded-xl hover:bg-[var(--accent-light)] transition-all duration-200"
             >
-              <Bell className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
+              <Bell className="w-[17px] h-[17px] text-[var(--text-secondary)]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.6)]" />
             </button>
             {notifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 glass-card shadow-elegant-lg overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-80 glass-card shadow-elegant-lg overflow-hidden z-50">
                 <div className="p-3 border-b border-[var(--border-color)]">
                   <h3 className="font-semibold text-sm text-[var(--text-primary)]">
                     {language === 'en' ? 'Notifications' : 'Notifikasi'}

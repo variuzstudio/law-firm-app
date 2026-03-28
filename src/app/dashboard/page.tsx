@@ -48,7 +48,7 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
   return (
     <div className="glass-card flex flex-col h-[420px]">
       <div className="flex items-center gap-2 p-4 border-b border-[var(--border-color)]">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center">
           <Bot className="w-4 h-4 text-white" />
         </div>
         <div>
@@ -65,7 +65,7 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
           <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
               msg.role === 'assistant'
-                ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                ? 'bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600'
                 : 'bg-gradient-to-br from-violet-500 to-purple-600'
             }`}>
               {msg.role === 'assistant' ? <Bot className="w-3.5 h-3.5 text-white" /> : <User className="w-3.5 h-3.5 text-white" />}
@@ -73,7 +73,7 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
             <div className={`max-w-[85%] p-3 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
               msg.role === 'assistant'
                 ? 'bg-[var(--bg-input)] text-[var(--text-primary)]'
-                : 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white'
+                : 'bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 text-white'
             }`}>
               {msg.content}
             </div>
@@ -121,7 +121,7 @@ function RevenueChart() {
           <div key={i} className="flex-1 flex flex-col items-center gap-2">
             <div className="w-full relative group">
               <div
-                className="w-full bg-gradient-to-t from-blue-500 to-blue-400 dark:from-blue-600 dark:to-blue-400 rounded-t-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-500"
+                className="w-full bg-gradient-to-t from-cyan-600 via-blue-500 to-purple-400 dark:from-cyan-600 dark:via-blue-500 dark:to-purple-500 rounded-t-lg transition-all duration-300 hover:opacity-90"
                 style={{ height: `${height}%`, minHeight: '8px' }}
               />
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-2 py-1 text-xs font-medium text-[var(--text-primary)] whitespace-nowrap shadow-lg">
@@ -152,17 +152,17 @@ export default function DashboardPage() {
   const recentActivities = activities.slice(0, 4)
 
   const stats = [
-    { label: t('dashboard.activeCases'), value: activeCases, icon: Briefcase, change: '+12%', up: true, color: 'from-blue-500 to-blue-600' },
-    { label: t('dashboard.totalClients'), value: 10, icon: Users, change: '+8%', up: true, color: 'from-violet-500 to-violet-600' },
-    { label: t('dashboard.pendingTasks'), value: 7, icon: Clock, change: '-5%', up: false, color: 'from-amber-500 to-amber-600' },
-    { label: t('dashboard.revenue'), value: formatCurrency(285000000), icon: TrendingUp, change: '+23%', up: true, color: 'from-emerald-500 to-emerald-600' },
+    { label: t('dashboard.activeCases'), value: activeCases, icon: Briefcase, change: '+12%', up: true, color: 'from-cyan-500 to-blue-600' },
+    { label: t('dashboard.totalClients'), value: 10, icon: Users, change: '+8%', up: true, color: 'from-blue-500 to-purple-600' },
+    { label: t('dashboard.pendingTasks'), value: 7, icon: Clock, change: '-5%', up: false, color: 'from-amber-500 to-orange-600' },
+    { label: t('dashboard.revenue'), value: formatCurrency(285000000), icon: TrendingUp, change: '+23%', up: true, color: 'from-emerald-500 to-teal-600' },
   ]
 
   const quickActions = [
-    { icon: AudioLines, label: t('nav.audioTranscribe'), href: '/audio-transcribe', color: 'from-rose-500 to-pink-600' },
-    { icon: BookOpenCheck, label: t('nav.lawCompare'), href: '/law-compare', color: 'from-amber-500 to-orange-600' },
-    { icon: ScanText, label: t('nav.ocrTool'), href: '/ocr-tool', color: 'from-teal-500 to-emerald-600' },
-    { icon: Video, label: t('nav.meeting'), href: '/meeting', color: 'from-indigo-500 to-purple-600' },
+    { icon: AudioLines, label: t('nav.audioTranscribe'), href: '/audio-transcribe', color: 'from-rose-500 to-pink-600 shadow-rose-500/20' },
+    { icon: BookOpenCheck, label: t('nav.lawCompare'), href: '/law-compare', color: 'from-amber-500 to-orange-600 shadow-amber-500/20' },
+    { icon: ScanText, label: t('nav.ocrTool'), href: '/ocr-tool', color: 'from-teal-500 to-cyan-600 shadow-teal-500/20' },
+    { icon: Video, label: t('nav.meeting'), href: '/meeting', color: 'from-blue-500 to-purple-600 shadow-blue-500/20' },
   ]
 
   return (

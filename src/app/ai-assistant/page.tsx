@@ -68,7 +68,7 @@ export default function AiAssistantPage() {
       <div className="flex flex-col h-[calc(100vh-5rem)] max-w-[900px] mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -88,15 +88,15 @@ export default function AiAssistantPage() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-fade-in`}>
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  msg.role === 'assistant' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-violet-500 to-purple-600'
+                  msg.role === 'assistant' ? 'bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600' : 'bg-gradient-to-br from-violet-500 to-purple-600'
                 }`}>
                   {msg.role === 'assistant' ? <Bot className="w-4 h-4 text-white" /> : <User className="w-4 h-4 text-white" />}
                 </div>
                 <div className={`max-w-[80%] group ${msg.role === 'user' ? 'text-right' : ''}`}>
                   <div className={`p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.role === 'assistant'
-                      ? 'bg-[var(--bg-input)] text-[var(--text-primary)] rounded-tl-sm'
-                      : 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-tr-sm'
+                    ? 'bg-[var(--bg-input)] text-[var(--text-primary)] rounded-tl-sm'
+                    : 'bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 text-white rounded-tr-sm'
                   }`}>
                     {msg.content}
                   </div>
@@ -115,7 +115,7 @@ export default function AiAssistantPage() {
             ))}
             {isTyping && (
               <div className="flex gap-3 animate-fade-in">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-[var(--bg-input)] rounded-2xl rounded-tl-sm p-4 flex items-center gap-1.5">
