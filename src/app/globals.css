@@ -1,0 +1,256 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #eef1f7;
+    --bg-secondary: #e2e8f0;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card-hover: rgba(255, 255, 255, 0.95);
+    --bg-sidebar: linear-gradient(180deg, #e8ecf4 0%, #d1dae8 50%, #c5d0e0 100%);
+    --bg-input: rgba(255, 255, 255, 0.7);
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: rgba(148, 163, 184, 0.3);
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-light: rgba(59, 130, 246, 0.1);
+    --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+    --gradient-hero: linear-gradient(135deg, #dde4ee 0%, #c5d0e0 50%, #b8c6d9 100%);
+  }
+
+  .dark {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --bg-card-hover: rgba(30, 41, 59, 0.9);
+    --bg-sidebar: linear-gradient(180deg, #0f172a 0%, #162033 50%, #1a2744 100%);
+    --bg-input: rgba(30, 41, 59, 0.6);
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-color: rgba(71, 85, 105, 0.4);
+    --accent: #60a5fa;
+    --accent-hover: #3b82f6;
+    --accent-light: rgba(96, 165, 250, 0.1);
+    --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+    --gradient-hero: linear-gradient(135deg, #162033 0%, #1a2744 50%, #1e3a5f 100%);
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+.light body,
+:root body {
+  background: linear-gradient(135deg, #eef1f7 0%, #e2e8f0 25%, #d8e0ec 50%, #e2e8f0 75%, #eef1f7 100%);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background: linear-gradient(135deg, #0f172a 0%, #162033 25%, #1a2744 50%, #162033 75%, #0f172a 100%);
+  background-attachment: fixed;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.12);
+}
+
+.dark .glass-card:hover {
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.4);
+}
+
+.glass-input {
+  background: var(--bg-input);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  outline: none;
+  width: 100%;
+}
+
+.glass-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(96, 165, 250, 0.1) 100%);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+  border-radius: 16px 16px 0 0;
+}
+
+.table-row {
+  transition: all 0.2s ease;
+}
+
+.table-row:hover {
+  background: var(--accent-light);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-fade-in-delay-1 { animation-delay: 0.1s; opacity: 0; }
+.animate-fade-in-delay-2 { animation-delay: 0.2s; opacity: 0; }
+.animate-fade-in-delay-3 { animation-delay: 0.3s; opacity: 0; }
+.animate-fade-in-delay-4 { animation-delay: 0.4s; opacity: 0; }
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+.badge-warning {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.badge-info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+.badge-neutral {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
