@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const DEMO_USER: User = {
   name: 'Ahmad Faisal, S.H.',
-  email: 'ahmad.faisal@lexsupport.id',
+  email: 'ahmad.faisal@salomopartners.id',
   role: 'Senior Partner',
   avatar: 'AF',
 }
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem('lexsupport-auth')
+    const saved = localStorage.getItem('salomo-auth')
     if (saved === 'true') {
       setUser(DEMO_USER)
     }
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (email: string, password: string): boolean => {
     if (email && password) {
       setUser(DEMO_USER)
-      localStorage.setItem('lexsupport-auth', 'true')
+      localStorage.setItem('salomo-auth', 'true')
       return true
     }
     return false
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('lexsupport-auth')
+    localStorage.removeItem('salomo-auth')
   }
 
   return (

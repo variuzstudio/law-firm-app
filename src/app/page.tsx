@@ -151,7 +151,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-[var(--text-muted)] mt-6">
-          &copy; 2026 LexSupport. All rights reserved.
+          &copy; 2026 Salomo Partners. All rights reserved.
         </p>
       </div>
     </div>

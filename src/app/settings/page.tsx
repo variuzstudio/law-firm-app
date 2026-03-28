@@ -21,9 +21,9 @@ export default function SettingsPage() {
 
   const [profile, setProfile] = useState({
     name: 'Ahmad Faisal, S.H.',
-    email: 'ahmad.faisal@lexsupport.id',
+    email: 'ahmad.faisal@salomopartners.id',
     role: 'Senior Partner',
-    firm: 'LexSupport Law Firm',
+    firm: 'Salomo Partners',
   })
 
   const [notifications, setNotifications] = useState({

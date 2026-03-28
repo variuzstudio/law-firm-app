@@ -15,6 +15,11 @@ import {
   LogOut,
   Scale,
   X,
+  MessageSquareText,
+  AudioLines,
+  BookOpenCheck,
+  ScanText,
+  Video,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -27,11 +32,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { t } = useLanguage()
   const { user, logout } = useAuth()
 
-  const navItems = [
+  const aiTools = [
+    { href: '/ai-assistant', icon: MessageSquareText, label: t('nav.aiAssistant') },
+    { href: '/audio-transcribe', icon: AudioLines, label: t('nav.audioTranscribe') },
+    { href: '/law-compare', icon: BookOpenCheck, label: t('nav.lawCompare') },
+    { href: '/ocr-tool', icon: ScanText, label: t('nav.ocrTool') },
+  ]
+
+  const managementItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
     { href: '/cases', icon: Briefcase, label: t('nav.cases') },
     { href: '/clients', icon: Users, label: t('nav.clients') },
     { href: '/documents', icon: FileText, label: t('nav.documents') },
+  ]
+
+  const workspaceItems = [
+    { href: '/meeting', icon: Video, label: t('nav.meeting') },
     { href: '/calendar', icon: Calendar, label: t('nav.calendar') },
     { href: '/billing', icon: CreditCard, label: t('nav.billing') },
     { href: '/settings', icon: Settings, label: t('nav.settings') },
@@ -41,6 +57,26 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     logout()
     window.location.href = '/'
   }
+
+  const renderNavGroup = (label: string, items: typeof aiTools) => (
+    <div className="mb-2">
+      <p className="px-3 mb-1.5 text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase">{label}</p>
+      {items.map((item) => {
+        const isActive = pathname === item.href
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onClose}
+            className={`sidebar-link ${isActive ? 'active' : ''}`}
+          >
+            <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+            <span>{item.label}</span>
+          </Link>
+        )
+      })}
+    </div>
+  )
 
   return (
     <>
@@ -58,17 +94,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           lg:translate-x-0 lg:static lg:z-auto
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-        style={{ background: 'var(--bg-sidebar)' }}
       >
-        <div className="flex flex-col h-full bg-gradient-to-b from-slate-100/80 via-slate-200/60 to-slate-300/40 dark:from-slate-900/80 dark:via-slate-800/60 dark:to-[#162033]/80 border-r border-[var(--border-color)]">
-          <div className="flex items-center justify-between p-5 border-b border-[var(--border-color)]">
+        <div className="flex flex-col h-full bg-gradient-to-b from-slate-100/90 via-slate-200/70 to-slate-300/50 dark:from-slate-900/90 dark:via-slate-800/70 dark:to-[#162033]/90 border-r border-[var(--border-color)] backdrop-blur-xl">
+          <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
-                <Scale className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <Scale className="w-[18px] h-[18px] text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--text-primary)]">LexSupport</h1>
-                <p className="text-[10px] text-[var(--text-muted)] tracking-wider uppercase">Legal Workspace</p>
+                <h1 className="text-[15px] font-bold text-[var(--text-primary)] leading-tight">Salomo Partners</h1>
+                <p className="text-[9px] text-[var(--text-muted)] tracking-wider uppercase">AI Legal Workspace</p>
               </div>
             </Link>
             <button onClick={onClose} className="lg:hidden p-1 rounded-lg hover:bg-[var(--accent-light)]">
@@ -76,38 +111,29 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
           </div>
 
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onClose}
-                  className={`sidebar-link ${isActive ? 'active' : ''}`}
-                >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
+          <nav className="flex-1 p-2.5 space-y-1 overflow-y-auto">
+            {renderNavGroup(t('nav.aiTools'), aiTools)}
+            <div className="h-px bg-[var(--border-color)] my-2 mx-2" />
+            {renderNavGroup(t('nav.management'), managementItems)}
+            <div className="h-px bg-[var(--border-color)] my-2 mx-2" />
+            {renderNavGroup(t('nav.workspace'), workspaceItems)}
           </nav>
 
-          <div className="p-3 border-t border-[var(--border-color)]">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-card)] mb-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+          <div className="p-2.5 border-t border-[var(--border-color)]">
+            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--bg-card)]">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {user?.avatar}
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{user?.name}</p>
-                <p className="text-xs text-[var(--text-muted)] truncate">{user?.role}</p>
+                <p className="text-[10px] text-[var(--text-muted)] truncate">{user?.role}</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="sidebar-link w-full text-red-400 hover:text-red-500 hover:bg-red-500/10"
+              className="sidebar-link w-full text-red-400 hover:text-red-500 hover:bg-red-500/10 mt-1"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-[18px] h-[18px]" />
               <span>{t('nav.logout')}</span>
             </button>
           </div>

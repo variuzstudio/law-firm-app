@@ -12,9 +12,8 @@ interface LanguageContextType {
 
 const translations: Record<Language, Record<string, string>> = {
   en: {
-    // Login
-    'login.title': 'LexSupport',
-    'login.subtitle': 'Intelligent Legal Workspace',
+    'login.title': 'Salomo Partners',
+    'login.subtitle': 'AI-Powered Legal Workspace',
     'login.email': 'Email Address',
     'login.password': 'Password',
     'login.remember': 'Remember me',
@@ -23,7 +22,6 @@ const translations: Record<Language, Record<string, string>> = {
     'login.noAccount': "Don't have an account?",
     'login.register': 'Register',
 
-    // Sidebar
     'nav.dashboard': 'Dashboard',
     'nav.cases': 'Cases',
     'nav.clients': 'Clients',
@@ -32,10 +30,17 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.billing': 'Billing',
     'nav.settings': 'Settings',
     'nav.logout': 'Sign Out',
+    'nav.aiAssistant': 'AI Legal Chat',
+    'nav.audioTranscribe': 'Audio Transcribe',
+    'nav.lawCompare': 'Law Comparator',
+    'nav.ocrTool': 'Doc Scanner',
+    'nav.meeting': 'Meeting Room',
+    'nav.aiTools': 'AI TOOLS',
+    'nav.management': 'MANAGEMENT',
+    'nav.workspace': 'WORKSPACE',
 
-    // Dashboard
     'dashboard.welcome': 'Welcome back',
-    'dashboard.overview': 'Here\'s your practice overview for today',
+    'dashboard.overview': 'Here\'s your AI-powered practice overview',
     'dashboard.activeCases': 'Active Cases',
     'dashboard.totalClients': 'Total Clients',
     'dashboard.pendingTasks': 'Pending Tasks',
@@ -46,8 +51,12 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.caseDistribution': 'Case Distribution',
     'dashboard.viewAll': 'View All',
     'dashboard.monthlyRevenue': 'Monthly Revenue',
+    'dashboard.aiChat': 'AI Legal Assistant',
+    'dashboard.aiChatPlaceholder': 'Ask about Indonesian law, regulations, legal procedures...',
+    'dashboard.aiChatWelcome': 'Hello! I\'m your AI Legal Assistant specialized in Indonesian law. Ask me about legal regulations, procedures, articles, or any legal matter.',
+    'dashboard.aiSend': 'Send',
+    'dashboard.quickActions': 'Quick AI Actions',
 
-    // Cases
     'cases.title': 'Case Management',
     'cases.subtitle': 'Manage and track all your legal cases',
     'cases.new': 'New Case',
@@ -82,7 +91,6 @@ const translations: Record<Language, Record<string, string>> = {
     'cases.cancel': 'Cancel',
     'cases.close': 'Close',
 
-    // Clients
     'clients.title': 'Client Management',
     'clients.subtitle': 'Manage your client relationships',
     'clients.new': 'New Client',
@@ -97,7 +105,6 @@ const translations: Record<Language, Record<string, string>> = {
     'clients.active': 'Active',
     'clients.inactive': 'Inactive',
 
-    // Documents
     'docs.title': 'Document Management',
     'docs.subtitle': 'Store and manage all legal documents',
     'docs.upload': 'Upload Document',
@@ -109,13 +116,13 @@ const translations: Record<Language, Record<string, string>> = {
     'docs.modified': 'Last Modified',
     'docs.download': 'Download',
     'docs.preview': 'Preview',
+    'docs.print': 'Print',
     'docs.contract': 'Contract',
     'docs.pleading': 'Pleading',
     'docs.correspondence': 'Correspondence',
     'docs.evidence': 'Evidence',
     'docs.memo': 'Memo',
 
-    // Calendar
     'calendar.title': 'Calendar',
     'calendar.subtitle': 'Schedule and manage appointments',
     'calendar.newEvent': 'New Event',
@@ -129,7 +136,6 @@ const translations: Record<Language, Record<string, string>> = {
     'calendar.consultation': 'Consultation',
     'calendar.upcoming': 'Upcoming Events',
 
-    // Billing
     'billing.title': 'Billing & Invoicing',
     'billing.subtitle': 'Manage invoices and payments',
     'billing.newInvoice': 'New Invoice',
@@ -148,7 +154,6 @@ const translations: Record<Language, Record<string, string>> = {
     'billing.collected': 'Collected',
     'billing.overdueAmount': 'Overdue Amount',
 
-    // Settings
     'settings.title': 'Settings',
     'settings.subtitle': 'Manage your account and preferences',
     'settings.profile': 'Profile',
@@ -179,7 +184,67 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.enable': 'Enable',
     'settings.disable': 'Disable',
 
-    // Common
+    'audio.title': 'AI Audio Transcription',
+    'audio.subtitle': 'Transform audio recordings into accurate text with AI',
+    'audio.upload': 'Upload Audio',
+    'audio.record': 'Record Audio',
+    'audio.stop': 'Stop Recording',
+    'audio.transcribe': 'Transcribe with AI',
+    'audio.rawText': 'Raw Transcription',
+    'audio.summary': 'AI Summary',
+    'audio.recording': 'Recording...',
+    'audio.processing': 'Processing with AI...',
+    'audio.dragDrop': 'Drag & drop audio file or click to browse',
+    'audio.formats': 'Supports MP3, WAV, M4A, WEBM',
+    'audio.noTranscription': 'No transcription yet. Upload or record audio to get started.',
+    'audio.copyText': 'Copy Text',
+    'audio.export': 'Export',
+    'audio.save': 'Save to Documents',
+
+    'lawCompare.title': 'AI Law Article Comparator',
+    'lawCompare.subtitle': 'Compare and analyze Indonesian law articles side by side',
+    'lawCompare.addArticle': 'Add Article',
+    'lawCompare.compare': 'Compare with AI',
+    'lawCompare.article': 'Article',
+    'lawCompare.law': 'Law / Regulation',
+    'lawCompare.content': 'Article Content',
+    'lawCompare.analysis': 'AI Analysis',
+    'lawCompare.similarities': 'Similarities',
+    'lawCompare.differences': 'Differences',
+    'lawCompare.recommendation': 'Recommendation',
+    'lawCompare.placeholder': 'Enter or paste the article text...',
+    'lawCompare.lawPlaceholder': 'e.g., UU No. 13 Tahun 2003',
+
+    'ocr.title': 'AI Document Scanner',
+    'ocr.subtitle': 'Extract text from images and PDF files with AI',
+    'ocr.upload': 'Upload File',
+    'ocr.scan': 'Scan with AI',
+    'ocr.result': 'Extracted Text',
+    'ocr.dragDrop': 'Drag & drop image or PDF file',
+    'ocr.formats': 'Supports JPG, PNG, PDF',
+    'ocr.copy': 'Copy Text',
+    'ocr.save': 'Save to Documents',
+    'ocr.noResult': 'No scan result yet. Upload a file to get started.',
+
+    'meeting.title': 'Meeting Room',
+    'meeting.subtitle': 'Video conference with your team',
+    'meeting.new': 'New Meeting',
+    'meeting.join': 'Join Meeting',
+    'meeting.schedule': 'Schedule Meeting',
+    'meeting.roomId': 'Room ID',
+    'meeting.start': 'Start Meeting',
+    'meeting.end': 'End Meeting',
+    'meeting.mute': 'Mute',
+    'meeting.unmute': 'Unmute',
+    'meeting.camera': 'Camera',
+    'meeting.share': 'Share Screen',
+    'meeting.chat': 'Chat',
+    'meeting.participants': 'Participants',
+    'meeting.leave': 'Leave Meeting',
+    'meeting.waiting': 'Waiting for participants...',
+    'meeting.copyLink': 'Copy Meeting Link',
+    'meeting.scheduled': 'Scheduled Meetings',
+
     'common.search': 'Search',
     'common.add': 'Add',
     'common.edit': 'Edit',
@@ -199,11 +264,11 @@ const translations: Record<Language, Record<string, string>> = {
     'common.showing': 'Showing',
     'common.of': 'of',
     'common.entries': 'entries',
+    'common.print': 'Print',
   },
   id: {
-    // Login
-    'login.title': 'LexSupport',
-    'login.subtitle': 'Ruang Kerja Hukum Cerdas',
+    'login.title': 'Salomo Partners',
+    'login.subtitle': 'Ruang Kerja Hukum Berbasis AI',
     'login.email': 'Alamat Email',
     'login.password': 'Kata Sandi',
     'login.remember': 'Ingat saya',
@@ -212,7 +277,6 @@ const translations: Record<Language, Record<string, string>> = {
     'login.noAccount': 'Belum punya akun?',
     'login.register': 'Daftar',
 
-    // Sidebar
     'nav.dashboard': 'Dasbor',
     'nav.cases': 'Perkara',
     'nav.clients': 'Klien',
@@ -221,10 +285,17 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.billing': 'Tagihan',
     'nav.settings': 'Pengaturan',
     'nav.logout': 'Keluar',
+    'nav.aiAssistant': 'AI Chat Hukum',
+    'nav.audioTranscribe': 'Transkripsi Audio',
+    'nav.lawCompare': 'Komparator Pasal',
+    'nav.ocrTool': 'Pemindai Dokumen',
+    'nav.meeting': 'Ruang Meeting',
+    'nav.aiTools': 'ALAT AI',
+    'nav.management': 'MANAJEMEN',
+    'nav.workspace': 'RUANG KERJA',
 
-    // Dashboard
     'dashboard.welcome': 'Selamat datang kembali',
-    'dashboard.overview': 'Berikut ringkasan praktik Anda hari ini',
+    'dashboard.overview': 'Ringkasan praktik hukum Anda berbasis AI',
     'dashboard.activeCases': 'Perkara Aktif',
     'dashboard.totalClients': 'Total Klien',
     'dashboard.pendingTasks': 'Tugas Tertunda',
@@ -235,8 +306,12 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.caseDistribution': 'Distribusi Perkara',
     'dashboard.viewAll': 'Lihat Semua',
     'dashboard.monthlyRevenue': 'Pendapatan Bulanan',
+    'dashboard.aiChat': 'Asisten AI Hukum',
+    'dashboard.aiChatPlaceholder': 'Tanya tentang hukum Indonesia, regulasi, prosedur hukum...',
+    'dashboard.aiChatWelcome': 'Halo! Saya asisten AI hukum yang mengkhususkan pada hukum Indonesia. Tanyakan tentang regulasi, prosedur, pasal, atau masalah hukum apapun.',
+    'dashboard.aiSend': 'Kirim',
+    'dashboard.quickActions': 'Aksi Cepat AI',
 
-    // Cases
     'cases.title': 'Manajemen Perkara',
     'cases.subtitle': 'Kelola dan lacak semua perkara hukum',
     'cases.new': 'Perkara Baru',
@@ -271,7 +346,6 @@ const translations: Record<Language, Record<string, string>> = {
     'cases.cancel': 'Batal',
     'cases.close': 'Tutup',
 
-    // Clients
     'clients.title': 'Manajemen Klien',
     'clients.subtitle': 'Kelola hubungan klien Anda',
     'clients.new': 'Klien Baru',
@@ -286,7 +360,6 @@ const translations: Record<Language, Record<string, string>> = {
     'clients.active': 'Aktif',
     'clients.inactive': 'Tidak Aktif',
 
-    // Documents
     'docs.title': 'Manajemen Dokumen',
     'docs.subtitle': 'Simpan dan kelola semua dokumen hukum',
     'docs.upload': 'Unggah Dokumen',
@@ -298,13 +371,13 @@ const translations: Record<Language, Record<string, string>> = {
     'docs.modified': 'Terakhir Diubah',
     'docs.download': 'Unduh',
     'docs.preview': 'Pratinjau',
+    'docs.print': 'Cetak',
     'docs.contract': 'Kontrak',
     'docs.pleading': 'Pembelaan',
     'docs.correspondence': 'Korespondensi',
     'docs.evidence': 'Bukti',
     'docs.memo': 'Memo',
 
-    // Calendar
     'calendar.title': 'Kalender',
     'calendar.subtitle': 'Jadwalkan dan kelola pertemuan',
     'calendar.newEvent': 'Acara Baru',
@@ -318,7 +391,6 @@ const translations: Record<Language, Record<string, string>> = {
     'calendar.consultation': 'Konsultasi',
     'calendar.upcoming': 'Jadwal Mendatang',
 
-    // Billing
     'billing.title': 'Tagihan & Faktur',
     'billing.subtitle': 'Kelola faktur dan pembayaran',
     'billing.newInvoice': 'Faktur Baru',
@@ -337,7 +409,6 @@ const translations: Record<Language, Record<string, string>> = {
     'billing.collected': 'Terkumpul',
     'billing.overdueAmount': 'Jumlah Terlambat',
 
-    // Settings
     'settings.title': 'Pengaturan',
     'settings.subtitle': 'Kelola akun dan preferensi Anda',
     'settings.profile': 'Profil',
@@ -368,7 +439,67 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.enable': 'Aktifkan',
     'settings.disable': 'Nonaktifkan',
 
-    // Common
+    'audio.title': 'Transkripsi Audio AI',
+    'audio.subtitle': 'Ubah rekaman audio menjadi teks akurat dengan AI',
+    'audio.upload': 'Unggah Audio',
+    'audio.record': 'Rekam Audio',
+    'audio.stop': 'Hentikan Rekaman',
+    'audio.transcribe': 'Transkripsi dengan AI',
+    'audio.rawText': 'Transkripsi Mentah',
+    'audio.summary': 'Ringkasan AI',
+    'audio.recording': 'Merekam...',
+    'audio.processing': 'Memproses dengan AI...',
+    'audio.dragDrop': 'Seret & lepas file audio atau klik untuk mencari',
+    'audio.formats': 'Mendukung MP3, WAV, M4A, WEBM',
+    'audio.noTranscription': 'Belum ada transkripsi. Unggah atau rekam audio untuk memulai.',
+    'audio.copyText': 'Salin Teks',
+    'audio.export': 'Ekspor',
+    'audio.save': 'Simpan ke Dokumen',
+
+    'lawCompare.title': 'Komparator Pasal Hukum AI',
+    'lawCompare.subtitle': 'Bandingkan dan analisis pasal hukum Indonesia secara berdampingan',
+    'lawCompare.addArticle': 'Tambah Pasal',
+    'lawCompare.compare': 'Bandingkan dengan AI',
+    'lawCompare.article': 'Pasal',
+    'lawCompare.law': 'Undang-Undang / Regulasi',
+    'lawCompare.content': 'Isi Pasal',
+    'lawCompare.analysis': 'Analisis AI',
+    'lawCompare.similarities': 'Persamaan',
+    'lawCompare.differences': 'Perbedaan',
+    'lawCompare.recommendation': 'Rekomendasi',
+    'lawCompare.placeholder': 'Masukkan atau tempel teks pasal...',
+    'lawCompare.lawPlaceholder': 'cth: UU No. 13 Tahun 2003',
+
+    'ocr.title': 'Pemindai Dokumen AI',
+    'ocr.subtitle': 'Ekstrak teks dari gambar dan file PDF dengan AI',
+    'ocr.upload': 'Unggah File',
+    'ocr.scan': 'Pindai dengan AI',
+    'ocr.result': 'Teks Hasil Ekstraksi',
+    'ocr.dragDrop': 'Seret & lepas gambar atau file PDF',
+    'ocr.formats': 'Mendukung JPG, PNG, PDF',
+    'ocr.copy': 'Salin Teks',
+    'ocr.save': 'Simpan ke Dokumen',
+    'ocr.noResult': 'Belum ada hasil pemindaian. Unggah file untuk memulai.',
+
+    'meeting.title': 'Ruang Meeting',
+    'meeting.subtitle': 'Konferensi video dengan tim Anda',
+    'meeting.new': 'Meeting Baru',
+    'meeting.join': 'Gabung Meeting',
+    'meeting.schedule': 'Jadwalkan Meeting',
+    'meeting.roomId': 'ID Ruangan',
+    'meeting.start': 'Mulai Meeting',
+    'meeting.end': 'Akhiri Meeting',
+    'meeting.mute': 'Bisukan',
+    'meeting.unmute': 'Bunyikan',
+    'meeting.camera': 'Kamera',
+    'meeting.share': 'Bagikan Layar',
+    'meeting.chat': 'Obrolan',
+    'meeting.participants': 'Peserta',
+    'meeting.leave': 'Keluar Meeting',
+    'meeting.waiting': 'Menunggu peserta...',
+    'meeting.copyLink': 'Salin Link Meeting',
+    'meeting.scheduled': 'Meeting Terjadwal',
+
     'common.search': 'Cari',
     'common.add': 'Tambah',
     'common.edit': 'Ubah',
@@ -388,6 +519,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.showing': 'Menampilkan',
     'common.of': 'dari',
     'common.entries': 'entri',
+    'common.print': 'Cetak',
   },
 }
 
@@ -397,7 +529,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>('id')
 
   useEffect(() => {
-    const saved = localStorage.getItem('lexsupport-language') as Language
+    const saved = localStorage.getItem('salomo-language') as Language
     if (saved && (saved === 'en' || saved === 'id')) {
       setLanguageState(saved)
     }
@@ -405,7 +537,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
-    localStorage.setItem('lexsupport-language', lang)
+    localStorage.setItem('salomo-language', lang)
   }
 
   const t = (key: string): string => {

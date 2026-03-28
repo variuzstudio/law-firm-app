@@ -8,7 +8,7 @@ import AppLayout from '@/components/AppLayout'
 import { documents as initialDocs } from '@/data/mockData'
 import {
   Upload, Search, Download, Eye, Trash2, X, FileText, File, FileCheck, FilePlus2,
-  ChevronDown, FolderOpen,
+  ChevronDown, FolderOpen, Printer,
 } from 'lucide-react'
 
 const typeIcons: Record<string, typeof FileText> = {
@@ -121,9 +121,10 @@ export default function DocumentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setPreviewDoc(doc)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]"><Eye className="w-4 h-4" /></button>
-                    <button className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]"><Download className="w-4 h-4" /></button>
-                    <button onClick={() => handleDelete(doc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => setPreviewDoc(doc)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.preview')}><Eye className="w-4 h-4" /></button>
+                    <button onClick={() => { const w = window.open('', '_blank'); if (w) { w.document.write(`<html><head><title>Salomo Partners - ${doc.name}</title><style>body{font-family:sans-serif;padding:40px;max-width:800px;margin:0 auto}h1{color:#1e3a5f;border-bottom:2px solid #3b82f6;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #eee}td:first-child{color:#666;width:140px}</style></head><body><h1>${doc.name}</h1><table><tr><td>Type</td><td>${doc.type}</td></tr><tr><td>Case</td><td>${doc.case}</td></tr><tr><td>Size</td><td>${doc.size}</td></tr><tr><td>Modified</td><td>${doc.modified}</td></tr><tr><td>Author</td><td>${doc.author}</td></tr></table><p style="margin-top:40px;color:#999;font-size:11px">Printed from Salomo Partners - ${new Date().toLocaleString()}</p></body></html>`); w.document.close(); w.print() } }} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.print')}><Printer className="w-4 h-4" /></button>
+                    <button className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.download')}><Download className="w-4 h-4" /></button>
+                    <button onClick={() => handleDelete(doc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500" title={t('cases.delete')}><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               )

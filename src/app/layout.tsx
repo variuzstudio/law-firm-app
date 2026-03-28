@@ -8,8 +8,8 @@ import { AuthProvider } from '@/context/AuthContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'LexSupport - Intelligent Legal Workspace',
-  description: 'Modern law firm management application for managing cases, clients, documents, and billing.',
+  title: 'Salomo Partners - AI-Powered Legal Workspace',
+  description: 'AI-powered law firm management application for managing cases, clients, documents, and billing.',
 }
 
 export default function RootLayout({
