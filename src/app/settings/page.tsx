@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { getGeminiKey, setGeminiKey, removeGeminiKey } from '@/lib/gemini'
 import AppLayout from '@/components/AppLayout'
 import {
-  User, Palette, Bell, Shield, Globe, Sun, Moon, Save, Check,
+  User, Palette, Bell, Shield, Globe, Sun, Moon, Save, Check, Key, Eye, EyeOff, ExternalLink, Trash2,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -41,7 +42,19 @@ export default function SettingsPage() {
     twoFactor: false,
   })
 
-  useEffect(() => { setMounted(true) }, [])
+  const [apiKey, setApiKeyInput] = useState('')
+  const [showKey, setShowKey] = useState(false)
+  const [hasKey, setHasKey] = useState(false)
+  const [keySaved, setKeySaved] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const key = getGeminiKey()
+    if (key) {
+      setHasKey(true)
+      setApiKeyInput(key)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/')
@@ -54,8 +67,24 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  const handleSaveApiKey = () => {
+    if (apiKey.trim()) {
+      setGeminiKey(apiKey.trim())
+      setHasKey(true)
+      setKeySaved(true)
+      setTimeout(() => setKeySaved(false), 2000)
+    }
+  }
+
+  const handleRemoveApiKey = () => {
+    removeGeminiKey()
+    setApiKeyInput('')
+    setHasKey(false)
+  }
+
   const tabs = [
     { id: 'profile', label: t('settings.profile'), icon: User },
+    { id: 'ai', label: t('settings.aiConfig') || 'AI Configuration', icon: Key },
     { id: 'appearance', label: t('settings.appearance'), icon: Palette },
     { id: 'notifications', label: t('settings.notifications'), icon: Bell },
     { id: 'security', label: t('settings.security'), icon: Shield },
@@ -123,6 +152,94 @@ export default function SettingsPage() {
                 <button onClick={handleSave} className="btn-primary">
                   {saved ? <><Check className="w-4 h-4" /> Saved!</> : <><Save className="w-4 h-4" /> {t('settings.save')}</>}
                 </button>
+              </div>
+            )}
+
+            {activeTab === 'ai' && (
+              <div className="glass-card p-6 space-y-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('settings.aiConfig') || 'AI Configuration'}</h2>
+                  <p className="text-sm text-[var(--text-muted)] mt-1">{t('settings.aiConfigDesc') || 'Configure your Gemini API key to enable AI features'}</p>
+                </div>
+
+                <div className="p-4 rounded-xl border border-[var(--card-border)] bg-[var(--bg-input)] space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center">
+                      <Key className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-[var(--text-primary)]">Google Gemini API Key</p>
+                      <p className="text-xs text-[var(--text-muted)]">
+                        {hasKey
+                          ? (t('settings.keyConfigured') || 'API key is configured')
+                          : (t('settings.keyNotConfigured') || 'No API key configured')}
+                      </p>
+                    </div>
+                    {hasKey && (
+                      <div className="ml-auto flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-medium">
+                        <Check className="w-3 h-3" />
+                        Active
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">API Key</label>
+                    <div className="relative">
+                      <input
+                        type={showKey ? 'text' : 'password'}
+                        value={apiKey}
+                        onChange={(e) => setApiKeyInput(e.target.value)}
+                        placeholder="AIzaSy..."
+                        className="glass-input text-sm pr-10 font-mono"
+                      />
+                      <button
+                        onClick={() => setShowKey(!showKey)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)]"
+                      >
+                        {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)] mt-1.5">
+                      {t('settings.keyStoredLocally') || 'Your API key is stored locally in your browser and never sent to our servers.'}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button onClick={handleSaveApiKey} disabled={!apiKey.trim()} className="btn-primary disabled:opacity-50">
+                      {keySaved ? <><Check className="w-4 h-4" /> {t('settings.keySaved') || 'Saved!'}</> : <><Save className="w-4 h-4" /> {t('settings.saveKey') || 'Save Key'}</>}
+                    </button>
+                    {hasKey && (
+                      <button onClick={handleRemoveApiKey} className="btn-secondary text-red-500 hover:text-red-600">
+                        <Trash2 className="w-4 h-4" /> {t('settings.removeKey') || 'Remove'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-[var(--card-border)] bg-[var(--accent-light)]">
+                  <h3 className="font-medium text-sm text-[var(--text-primary)] mb-2">{t('settings.howToGetKey') || 'How to get an API key'}</h3>
+                  <ol className="text-sm text-[var(--text-secondary)] space-y-1.5 list-decimal list-inside">
+                    <li>{t('settings.step1') || 'Visit Google AI Studio'}</li>
+                    <li>{t('settings.step2') || 'Sign in with your Google account'}</li>
+                    <li>{t('settings.step3') || 'Click "Create API Key" to generate a new key'}</li>
+                    <li>{t('settings.step4') || 'Copy and paste the key above'}</li>
+                  </ol>
+                  <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-[var(--accent)] hover:underline"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    {t('settings.openAIStudio') || 'Open Google AI Studio'}
+                  </a>
+                </div>
+
+                <div className="text-xs text-[var(--text-muted)] space-y-1">
+                  <p>{t('settings.aiNote1') || 'AI features use Gemini 2.0 Flash for fast, cost-effective responses.'}</p>
+                  <p>{t('settings.aiNote2') || 'Without an API key, AI tools will use demo/mock responses.'}</p>
+                </div>
               </div>
             )}
 

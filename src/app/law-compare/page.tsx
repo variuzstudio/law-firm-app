@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
+import { compareLawArticles, getGeminiKey } from '@/lib/gemini'
 import { lawCompareResult } from '@/data/aiResponses'
 import {
-  BookOpenCheck, Plus, Trash2, Sparkles, ArrowRight, CheckCircle2, XCircle, Lightbulb, Copy, Check,
+  BookOpenCheck, Plus, Trash2, Sparkles, CheckCircle2, XCircle, Lightbulb, Copy, Check,
 } from 'lucide-react'
 
 interface Article {
@@ -26,6 +27,7 @@ export default function LawComparePage() {
     { id: 2, law: 'KUH Perdata', articleNumber: 'Pasal 1365', content: 'Tiap perbuatan yang melanggar hukum dan membawa kerugian kepada orang lain, mewajibkan orang yang menimbulkan kerugian itu karena kesalahannya untuk mengganti kerugian tersebut.' },
   ])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisText, setAnalysisText] = useState('')
   const [result, setResult] = useState<typeof lawCompareResult | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -51,28 +53,57 @@ export default function LawComparePage() {
     if (articles.some((a) => !a.content.trim())) return
     setIsAnalyzing(true)
     setResult(null)
-    await new Promise((r) => setTimeout(r, 2500))
-    setResult(lawCompareResult)
+    setAnalysisText('')
+
+    try {
+      const apiKey = getGeminiKey()
+      if (apiKey) {
+        const articlesForApi = articles.map((a) => ({
+          title: `${a.law} ${a.articleNumber}`.trim(),
+          content: a.content,
+        }))
+        const response = await compareLawArticles(articlesForApi)
+        setAnalysisText(response)
+      } else {
+        await new Promise((r) => setTimeout(r, 2500))
+        setResult(lawCompareResult)
+      }
+    } catch {
+      await new Promise((r) => setTimeout(r, 500))
+      setResult(lawCompareResult)
+    }
     setIsAnalyzing(false)
   }
 
+  const getDisplayText = () => {
+    if (analysisText) return analysisText
+    if (result) {
+      return `PERSAMAAN:\n${result.similarities.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\nPERBEDAAN:\n${result.differences.map((d, i) => `${i + 1}. ${d}`).join('\n')}\n\nREKOMENDASI:\n${result.recommendation}`
+    }
+    return ''
+  }
+
   const handleCopyResult = () => {
-    if (!result) return
-    const text = `ANALISIS PERBANDINGAN PASAL\n\nPERSAMAAN:\n${result.similarities.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\nPERBEDAAN:\n${result.differences.map((d, i) => `${i + 1}. ${d}`).join('\n')}\n\nREKOMENDASI:\n${result.recommendation}`
+    const text = getDisplayText()
+    if (!text) return
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handlePrint = () => {
-    if (!result) return
+    const text = getDisplayText()
+    if (!text) return
     const w = window.open('', '_blank')
     if (w) {
-      w.document.write(`<html><head><title>Salomo Partners - Law Comparison</title><style>body{font-family:sans-serif;padding:40px;line-height:1.8;max-width:800px;margin:0 auto}h1{color:#1e3a5f;border-bottom:2px solid #3b82f6;padding-bottom:10px}h2{color:#334155;margin-top:24px}ul{padding-left:20px}li{margin-bottom:8px}.rec{background:#f0f9ff;border-left:4px solid #3b82f6;padding:16px;margin-top:16px;border-radius:0 8px 8px 0}</style></head><body><h1>Salomo Partners - Analisis Perbandingan Pasal</h1><p style="color:#666;font-size:12px">Generated: ${new Date().toLocaleString()}</p><h2>Pasal yang Dibandingkan:</h2>${articles.map((a) => `<p><strong>${a.law} ${a.articleNumber}:</strong> ${a.content}</p>`).join('')}<h2>Persamaan:</h2><ul>${result.similarities.map((s) => `<li>${s}</li>`).join('')}</ul><h2>Perbedaan:</h2><ul>${result.differences.map((d) => `<li>${d}</li>`).join('')}</ul><h2>Rekomendasi:</h2><div class="rec">${result.recommendation}</div></body></html>`)
+      const content = text.replace(/\n/g, '<br>')
+      w.document.write(`<html><head><title>Salomo Partners - Law Comparison</title><style>body{font-family:sans-serif;padding:40px;line-height:1.8;max-width:800px;margin:0 auto}h1{color:#1e3a5f;border-bottom:2px solid #3b82f6;padding-bottom:10px}</style></head><body><h1>Salomo Partners - Analisis Perbandingan Pasal</h1><p style="color:#666;font-size:12px">Generated: ${new Date().toLocaleString()}</p><hr style="border:none;border-top:1px solid #eee;margin:20px 0"><div style="font-size:14px">${content}</div></body></html>`)
       w.document.close()
       w.print()
     }
   }
+
+  const hasResult = !!analysisText || !!result
 
   return (
     <AppLayout>
@@ -133,7 +164,7 @@ export default function LawComparePage() {
           </button>
         </div>
 
-        {result && (
+        {hasResult && (
           <div className="glass-card p-5 animate-fade-in space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
@@ -149,40 +180,48 @@ export default function LawComparePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                <h3 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2 mb-3">
-                  <CheckCircle2 className="w-4 h-4" /> {t('lawCompare.similarities')}
-                </h3>
-                <ul className="space-y-2">
-                  {result.similarities.map((s, i) => (
-                    <li key={i} className="text-sm text-[var(--text-secondary)] flex gap-2">
-                      <span className="text-emerald-500 flex-shrink-0 mt-1">&bull;</span> {s}
-                    </li>
-                  ))}
-                </ul>
+            {analysisText ? (
+              <div className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
+                {analysisText}
               </div>
+            ) : result && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                    <h3 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2 mb-3">
+                      <CheckCircle2 className="w-4 h-4" /> {t('lawCompare.similarities')}
+                    </h3>
+                    <ul className="space-y-2">
+                      {result.similarities.map((s, i) => (
+                        <li key={i} className="text-sm text-[var(--text-secondary)] flex gap-2">
+                          <span className="text-emerald-500 flex-shrink-0 mt-1">&bull;</span> {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-              <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-                <h3 className="font-semibold text-sm text-red-600 dark:text-red-400 flex items-center gap-2 mb-3">
-                  <XCircle className="w-4 h-4" /> {t('lawCompare.differences')}
-                </h3>
-                <ul className="space-y-2">
-                  {result.differences.map((d, i) => (
-                    <li key={i} className="text-sm text-[var(--text-secondary)] flex gap-2">
-                      <span className="text-red-500 flex-shrink-0 mt-1">&bull;</span> {d}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+                  <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                    <h3 className="font-semibold text-sm text-red-600 dark:text-red-400 flex items-center gap-2 mb-3">
+                      <XCircle className="w-4 h-4" /> {t('lawCompare.differences')}
+                    </h3>
+                    <ul className="space-y-2">
+                      {result.differences.map((d, i) => (
+                        <li key={i} className="text-sm text-[var(--text-secondary)] flex gap-2">
+                          <span className="text-red-500 flex-shrink-0 mt-1">&bull;</span> {d}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
 
-            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-              <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-2">
-                <Lightbulb className="w-4 h-4" /> {t('lawCompare.recommendation')}
-              </h3>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{result.recommendation}</p>
-            </div>
+                <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                  <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-2">
+                    <Lightbulb className="w-4 h-4" /> {t('lawCompare.recommendation')}
+                  </h3>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{result.recommendation}</p>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

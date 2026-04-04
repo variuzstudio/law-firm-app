@@ -5,16 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
+import { chatWithGemini, getGeminiKey } from '@/lib/gemini'
 import { getAiResponse } from '@/data/aiResponses'
 import {
-  Briefcase, Users, Clock, TrendingUp, ChevronRight, ArrowUpRight, ArrowDownRight,
+  Briefcase, Users, Clock, ChevronRight, ArrowUpRight, ArrowDownRight,
   Send, Bot, User, Sparkles, AudioLines, BookOpenCheck, ScanText, Video, Calendar, FileText,
 } from 'lucide-react'
-import { cases, activities, calendarEvents, revenueData, caseTypeData } from '@/data/mockData'
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount)
-}
+import { cases, activities, calendarEvents, caseTypeData } from '@/data/mockData'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -39,9 +36,21 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', content: userMsg }])
     setIsTyping(true)
-    await new Promise((r) => setTimeout(r, 1200 + Math.random() * 800))
-    const response = getAiResponse(userMsg)
-    setMessages((prev) => [...prev, { role: 'assistant', content: response }])
+
+    try {
+      const apiKey = getGeminiKey()
+      if (apiKey) {
+        const history = messages.map((m) => ({ role: m.role, content: m.content }))
+        const response = await chatWithGemini([...history, { role: 'user', content: userMsg }])
+        setMessages((prev) => [...prev, { role: 'assistant', content: response }])
+      } else {
+        await new Promise((r) => setTimeout(r, 800))
+        setMessages((prev) => [...prev, { role: 'assistant', content: getAiResponse(userMsg) }])
+      }
+    } catch {
+      await new Promise((r) => setTimeout(r, 500))
+      setMessages((prev) => [...prev, { role: 'assistant', content: getAiResponse(userMsg) }])
+    }
     setIsTyping(false)
   }
 
@@ -81,7 +90,7 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
         ))}
         {isTyping && (
           <div className="flex gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center">
               <Bot className="w-3.5 h-3.5 text-white" />
             </div>
             <div className="bg-[var(--bg-input)] rounded-xl p-3 flex items-center gap-1">
@@ -111,27 +120,24 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
   )
 }
 
-function RevenueChart() {
-  const max = Math.max(...revenueData.map((d) => d.revenue))
+function CaseDistribution() {
+  const total = caseTypeData.reduce((s, d) => s + d.value, 0)
   return (
-    <div className="flex items-end gap-3 h-32 mt-4">
-      {revenueData.map((d, i) => {
-        const height = (d.revenue / max) * 100
-        return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-2">
-            <div className="w-full relative group">
-              <div
-                className="w-full bg-gradient-to-t from-cyan-600 via-blue-500 to-purple-400 dark:from-cyan-600 dark:via-blue-500 dark:to-purple-500 rounded-t-lg transition-all duration-300 hover:opacity-90"
-                style={{ height: `${height}%`, minHeight: '8px' }}
-              />
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-2 py-1 text-xs font-medium text-[var(--text-primary)] whitespace-nowrap shadow-lg">
-                {formatCurrency(d.revenue)}
-              </div>
+    <div className="space-y-3 mt-3">
+      {caseTypeData.map((d, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+          <div className="flex-1">
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-[var(--text-secondary)]">{d.name}</span>
+              <span className="font-medium text-[var(--text-primary)]">{d.value}</span>
             </div>
-            <span className="text-[11px] text-[var(--text-muted)]">{d.month}</span>
+            <div className="w-full h-1.5 rounded-full bg-[var(--border-color)]">
+              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(d.value / total) * 100}%`, backgroundColor: d.color }} />
+            </div>
           </div>
-        )
-      })}
+        </div>
+      ))}
     </div>
   )
 }
@@ -155,7 +161,6 @@ export default function DashboardPage() {
     { label: t('dashboard.activeCases'), value: activeCases, icon: Briefcase, change: '+12%', up: true, color: 'from-cyan-500 to-blue-600' },
     { label: t('dashboard.totalClients'), value: 10, icon: Users, change: '+8%', up: true, color: 'from-blue-500 to-purple-600' },
     { label: t('dashboard.pendingTasks'), value: 7, icon: Clock, change: '-5%', up: false, color: 'from-amber-500 to-orange-600' },
-    { label: t('dashboard.revenue'), value: formatCurrency(285000000), icon: TrendingUp, change: '+23%', up: true, color: 'from-emerald-500 to-teal-600' },
   ]
 
   const quickActions = [
@@ -175,7 +180,7 @@ export default function DashboardPage() {
           <p className="text-[var(--text-muted)] mt-1">{t('dashboard.overview')}</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {stats.map((stat, i) => (
             <div key={i} className="glass-card stat-card p-4 animate-fade-in">
               <div className="flex items-start justify-between">
@@ -244,17 +249,12 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 glass-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-sm text-[var(--text-primary)]">{t('dashboard.monthlyRevenue')}</h3>
-              <button onClick={() => router.push('/billing')} className="text-xs text-[var(--accent)] hover:underline flex items-center gap-0.5">
-                {t('dashboard.viewAll')} <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-            <RevenueChart />
+          <div className="glass-card p-4">
+            <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-2">{t('dashboard.caseDistribution')}</h3>
+            <CaseDistribution />
           </div>
 
-          <div className="glass-card p-4">
+          <div className="lg:col-span-2 glass-card p-4">
             <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-3">{t('dashboard.recentActivity')}</h3>
             <div className="space-y-2">
               {recentActivities.map((a) => (

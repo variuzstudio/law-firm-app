@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
+import { scanDocument, getGeminiKey } from '@/lib/gemini'
 import { ocrSampleResult } from '@/data/aiResponses'
 import {
-  ScanText, Upload, Sparkles, Copy, Check, Download, FileImage, FileText, Printer,
+  ScanText, Upload, Sparkles, Copy, Check, FileImage, FileText, Printer,
 } from 'lucide-react'
 
 export default function OcrToolPage() {
@@ -19,25 +20,69 @@ export default function OcrToolPage() {
   const [isScanning, setIsScanning] = useState(false)
   const [result, setResult] = useState('')
   const [copied, setCopied] = useState(false)
+  const [fileBase64, setFileBase64] = useState('')
+  const [fileMimeType, setFileMimeType] = useState('')
+  const [previewUrl, setPreviewUrl] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/')
   }, [isAuthenticated, router])
 
+  const fileToBase64 = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const result = reader.result as string
+        resolve(result.split(',')[1])
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }, [])
+
   if (!isAuthenticated) return null
 
-  const handleUpload = () => {
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const base64 = await fileToBase64(file)
+    setFileBase64(base64)
+    setFileMimeType(file.type || 'image/png')
     setHasFile(true)
-    setFileName('surat_kuasa_045_2026.pdf')
+    setFileName(file.name)
     setResult('')
+
+    if (file.type.startsWith('image/')) {
+      setPreviewUrl(URL.createObjectURL(file))
+    } else {
+      setPreviewUrl('')
+    }
   }
 
   const handleScan = async () => {
     if (!hasFile) return
     setIsScanning(true)
     setResult('')
-    await new Promise((r) => setTimeout(r, 2500))
-    setResult(ocrSampleResult)
+
+    try {
+      const apiKey = getGeminiKey()
+      if (apiKey && fileBase64) {
+        const response = await scanDocument(fileBase64, fileMimeType)
+        setResult(response)
+      } else {
+        await new Promise((r) => setTimeout(r, 2500))
+        setResult(ocrSampleResult)
+      }
+    } catch {
+      await new Promise((r) => setTimeout(r, 500))
+      setResult(ocrSampleResult)
+    }
     setIsScanning(false)
   }
 
@@ -75,8 +120,15 @@ export default function OcrToolPage() {
           <div className="lg:col-span-2 space-y-4">
             <div className="glass-card p-5">
               <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-4">{t('ocr.upload')}</h3>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                className="hidden"
+              />
               <div
-                onClick={handleUpload}
+                onClick={handleUploadClick}
                 className="border-2 border-dashed border-[var(--border-color)] rounded-xl p-8 text-center hover:border-[var(--accent)] transition-colors cursor-pointer"
               >
                 <Upload className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-3" />
@@ -89,7 +141,7 @@ export default function OcrToolPage() {
                   <FileImage className="w-8 h-8 text-[var(--accent)]" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[var(--text-primary)] truncate">{fileName}</p>
-                    <p className="text-xs text-[var(--text-muted)]">PDF Document</p>
+                    <p className="text-xs text-[var(--text-muted)]">{fileMimeType}</p>
                   </div>
                   <span className="text-xs text-emerald-500 font-medium">Ready</span>
                 </div>
@@ -99,12 +151,15 @@ export default function OcrToolPage() {
             {hasFile && (
               <div className="glass-card p-5">
                 <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-3">Preview</h3>
-                <div className="aspect-[3/4] rounded-xl bg-[var(--bg-input)] border border-[var(--border-color)] flex items-center justify-center">
-                  <div className="text-center">
-                    <FileText className="w-16 h-16 text-[var(--text-muted)] mx-auto mb-2" />
-                    <p className="text-sm text-[var(--text-muted)]">{fileName}</p>
-                    <p className="text-xs text-[var(--text-muted)] mt-1">1 page</p>
-                  </div>
+                <div className="aspect-[3/4] rounded-xl bg-[var(--bg-input)] border border-[var(--border-color)] flex items-center justify-center overflow-hidden">
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
+                  ) : (
+                    <div className="text-center">
+                      <FileText className="w-16 h-16 text-[var(--text-muted)] mx-auto mb-2" />
+                      <p className="text-sm text-[var(--text-muted)]">{fileName}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

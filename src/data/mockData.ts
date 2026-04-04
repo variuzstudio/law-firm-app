@@ -50,19 +50,6 @@ export const calendarEvents = [
   { id: 10, title: 'Mediasi - PT Makmur Sentosa', type: 'meeting', date: '2026-04-07', time: '14:00', location: 'Kantor Mediator', case: 'CSE-2026-010', color: '#8b5cf6' },
 ]
 
-export const invoices = [
-  { id: 'INV-2026-001', client: 'PT Maju Jaya', amount: 75000000, status: 'paid', dueDate: '2026-03-15', case: 'CSE-2026-001', issuedDate: '2026-02-15' },
-  { id: 'INV-2026-002', client: 'Budi Santoso', amount: 25000000, status: 'paid', dueDate: '2026-03-20', case: 'CSE-2026-002', issuedDate: '2026-02-20' },
-  { id: 'INV-2026-003', client: 'CV Bersama', amount: 50000000, status: 'unpaid', dueDate: '2026-04-01', case: 'CSE-2026-003', issuedDate: '2026-03-01' },
-  { id: 'INV-2026-004', client: 'Hendra Wijaya', amount: 35000000, status: 'partial', dueDate: '2026-03-25', case: 'CSE-2026-004', issuedDate: '2026-02-25' },
-  { id: 'INV-2026-005', client: 'Rizki Pratama', amount: 30000000, status: 'unpaid', dueDate: '2026-04-10', case: 'CSE-2026-005', issuedDate: '2026-03-10' },
-  { id: 'INV-2026-006', client: 'PT Global Invest', amount: 150000000, status: 'paid', dueDate: '2026-03-10', case: 'CSE-2026-006', issuedDate: '2026-02-10' },
-  { id: 'INV-2026-007', client: 'PT Indotech', amount: 45000000, status: 'overdue', dueDate: '2026-03-01', case: 'CSE-2026-007', issuedDate: '2026-02-01' },
-  { id: 'INV-2026-008', client: 'PT Export Indo', amount: 60000000, status: 'paid', dueDate: '2026-02-28', case: 'CSE-2026-008', issuedDate: '2026-01-28' },
-  { id: 'INV-2026-009', client: 'Andi Nugroho', amount: 20000000, status: 'unpaid', dueDate: '2026-04-15', case: 'CSE-2026-009', issuedDate: '2026-03-15' },
-  { id: 'INV-2026-010', client: 'PT Makmur Sentosa', amount: 85000000, status: 'partial', dueDate: '2026-03-28', case: 'CSE-2026-010', issuedDate: '2026-02-28' },
-]
-
 export const activities = [
   { id: 1, action: 'Document uploaded', detail: 'Surat Kuasa - PT Maju Jaya', time: '2 hours ago', user: 'Ahmad Faisal', icon: 'file' },
   { id: 2, action: 'Case updated', detail: 'CSE-2026-005 status changed to Active', time: '4 hours ago', user: 'Siti Rahayu', icon: 'briefcase' },
@@ -72,15 +59,6 @@ export const activities = [
   { id: 6, action: 'Case closed', detail: 'CSE-2026-008 marked as closed', time: '2 days ago', user: 'Ahmad Faisal', icon: 'check' },
   { id: 7, action: 'Note added', detail: 'Strategy memo for CSE-2026-001', time: '2 days ago', user: 'Siti Rahayu', icon: 'edit' },
   { id: 8, action: 'Payment received', detail: 'INV-2026-006 - Rp 150.000.000', time: '3 days ago', user: 'System', icon: 'dollar' },
-]
-
-export const revenueData = [
-  { month: 'Oct', revenue: 180000000 },
-  { month: 'Nov', revenue: 220000000 },
-  { month: 'Dec', revenue: 195000000 },
-  { month: 'Jan', revenue: 250000000 },
-  { month: 'Feb', revenue: 310000000 },
-  { month: 'Mar', revenue: 285000000 },
 ]
 
 export const caseTypeData = [

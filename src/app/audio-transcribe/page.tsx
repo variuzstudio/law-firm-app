@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
+import { transcribeAudio, getGeminiKey } from '@/lib/gemini'
 import { sampleTranscription } from '@/data/aiResponses'
 import {
-  Upload, Mic, Square, AudioLines, Copy, Check, Download, FileText, Sparkles, Play, Pause,
+  Upload, Mic, Square, AudioLines, Copy, Check, Download, FileText, Sparkles,
 } from 'lucide-react'
 
 export default function AudioTranscribePage() {
@@ -23,7 +24,12 @@ export default function AudioTranscribePage() {
   const [activeTab, setActiveTab] = useState<'raw' | 'summary'>('raw')
   const [copied, setCopied] = useState(false)
   const [fileName, setFileName] = useState('')
+  const [audioBase64, setAudioBase64] = useState('')
+  const [audioMimeType, setAudioMimeType] = useState('audio/webm')
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/')
@@ -38,27 +44,72 @@ export default function AudioTranscribePage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [isRecording])
 
+  const blobToBase64 = useCallback((blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const result = reader.result as string
+        resolve(result.split(',')[1])
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  }, [])
+
   if (!isAuthenticated) return null
 
   const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
-  const handleRecord = () => {
+  const handleRecord = async () => {
     if (isRecording) {
+      mediaRecorderRef.current?.stop()
       setIsRecording(false)
-      setHasAudio(true)
-      setFileName('Recording_' + new Date().toISOString().slice(0, 10) + '.webm')
     } else {
-      setRecordingTime(0)
-      setIsRecording(true)
-      setHasAudio(false)
-      setRawText('')
-      setSummary('')
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaRecorder = new MediaRecorder(stream)
+        mediaRecorderRef.current = mediaRecorder
+        chunksRef.current = []
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data)
+        }
+
+        mediaRecorder.onstop = async () => {
+          stream.getTracks().forEach((track) => track.stop())
+          const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+          const base64 = await blobToBase64(blob)
+          setAudioBase64(base64)
+          setAudioMimeType('audio/webm')
+          setHasAudio(true)
+          setFileName('Recording_' + new Date().toISOString().slice(0, 10) + '.webm')
+        }
+
+        mediaRecorder.start()
+        setRecordingTime(0)
+        setIsRecording(true)
+        setHasAudio(false)
+        setRawText('')
+        setSummary('')
+      } catch {
+        alert('Could not access microphone. Please allow microphone permission.')
+      }
     }
   }
 
   const handleUpload = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const base64 = await blobToBase64(file)
+    setAudioBase64(base64)
+    setAudioMimeType(file.type || 'audio/mpeg')
     setHasAudio(true)
-    setFileName('rapat_internal_28032026.mp3')
+    setFileName(file.name)
     setRawText('')
     setSummary('')
   }
@@ -69,12 +120,28 @@ export default function AudioTranscribePage() {
     setRawText('')
     setSummary('')
 
-    await new Promise((r) => setTimeout(r, 2000))
-    setRawText(sampleTranscription.raw)
-    setActiveTab('raw')
-
-    await new Promise((r) => setTimeout(r, 1500))
-    setSummary(sampleTranscription.summary)
+    try {
+      const apiKey = getGeminiKey()
+      if (apiKey && audioBase64) {
+        const result = await transcribeAudio(audioBase64, audioMimeType)
+        setRawText(result.raw)
+        setActiveTab('raw')
+        setSummary(result.summary)
+      } else {
+        await new Promise((r) => setTimeout(r, 2000))
+        setRawText(sampleTranscription.raw)
+        setActiveTab('raw')
+        await new Promise((r) => setTimeout(r, 1500))
+        setSummary(sampleTranscription.summary)
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Transcription failed'
+      setRawText(`⚠️ ${errorMsg}\n\nFalling back to demo data...`)
+      setSummary('')
+      await new Promise((r) => setTimeout(r, 1000))
+      setRawText(sampleTranscription.raw)
+      setSummary(sampleTranscription.summary)
+    }
     setIsProcessing(false)
   }
 
@@ -142,6 +209,13 @@ export default function AudioTranscribePage() {
 
             <div className="glass-card p-5">
               <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-4">{t('audio.upload')}</h3>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
               <div
                 onClick={handleUpload}
                 className="border-2 border-dashed border-[var(--border-color)] rounded-xl p-6 text-center hover:border-[var(--accent)] transition-colors cursor-pointer"

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
+import { chatWithGemini, getGeminiKey } from '@/lib/gemini'
 import { getAiResponse } from '@/data/aiResponses'
 import { Send, Bot, User, Sparkles, Trash2, Copy, Check } from 'lucide-react'
 
@@ -42,9 +43,23 @@ export default function AiAssistantPage() {
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', content: userMsg, timestamp: new Date() }])
     setIsTyping(true)
-    await new Promise((r) => setTimeout(r, 1500 + Math.random() * 1000))
-    const response = getAiResponse(userMsg)
-    setMessages((prev) => [...prev, { role: 'assistant', content: response, timestamp: new Date() }])
+
+    try {
+      const apiKey = getGeminiKey()
+      if (apiKey) {
+        const history = messages.map((m) => ({ role: m.role, content: m.content }))
+        const response = await chatWithGemini([...history, { role: 'user', content: userMsg }])
+        setMessages((prev) => [...prev, { role: 'assistant', content: response, timestamp: new Date() }])
+      } else {
+        await new Promise((r) => setTimeout(r, 800))
+        const response = getAiResponse(userMsg)
+        setMessages((prev) => [...prev, { role: 'assistant', content: response, timestamp: new Date() }])
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred'
+      await new Promise((r) => setTimeout(r, 300))
+      setMessages((prev) => [...prev, { role: 'assistant', content: `⚠️ ${errorMsg}\n\nFalling back to demo mode.`, timestamp: new Date() }])
+    }
     setIsTyping(false)
   }
 

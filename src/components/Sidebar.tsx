@@ -10,7 +10,6 @@ import {
   Users,
   FileText,
   Calendar,
-  CreditCard,
   Settings,
   LogOut,
   Scale,
@@ -49,7 +48,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const workspaceItems = [
     { href: '/meeting', icon: Video, label: t('nav.meeting') },
     { href: '/calendar', icon: Calendar, label: t('nav.calendar') },
-    { href: '/billing', icon: CreditCard, label: t('nav.billing') },
     { href: '/settings', icon: Settings, label: t('nav.settings') },
   ]
 
