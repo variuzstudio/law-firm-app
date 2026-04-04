@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   login: (email: string, password: string) => boolean
+  loginWithCredentials: (email: string, password: string) => Promise<boolean>
   loginWithGoogle: () => void
   logout: () => void
   loading: boolean
@@ -40,6 +41,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return true
   }
 
+  const loginWithCredentials = async (email: string, password: string): Promise<boolean> => {
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.ok) {
+      window.location.href = '/dashboard'
+      return true
+    }
+    return false
+  }
+
   const loginWithGoogle = () => {
     signIn('google', { callbackUrl: '/dashboard' })
   }
@@ -54,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: !!session,
         login,
+        loginWithCredentials,
         loginWithGoogle,
         logout,
         loading: status === 'loading',

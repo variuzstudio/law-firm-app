@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { Scale, Sun, Moon, Globe, ArrowRight, Sparkles } from 'lucide-react'
+import { Scale, Eye, EyeOff, Sun, Moon, Globe, ArrowRight, Sparkles } from 'lucide-react'
 
 function GoogleIcon() {
   return (
@@ -19,12 +19,17 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const [mounted, setMounted] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const { language, setLanguage, t } = useLanguage()
-  const { isAuthenticated, loginWithGoogle, loading: authLoading } = useAuth()
+  const { isAuthenticated, loginWithCredentials, loginWithGoogle, loading: authLoading } = useAuth()
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -32,8 +37,29 @@ export default function LoginPage() {
     if (isAuthenticated) router.push('/dashboard')
   }, [isAuthenticated, router])
 
-  const handleGoogleLogin = () => {
+  const handleCredentialLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    if (!email || !password) {
+      setError(t('login.fillFields'))
+      return
+    }
+    if (password.length < 4) {
+      setError(t('login.passwordMin'))
+      return
+    }
+
     setLoading(true)
+    const success = await loginWithCredentials(email, password)
+    if (!success) {
+      setError(t('login.invalidCredentials'))
+    }
+    setLoading(false)
+  }
+
+  const handleGoogleLogin = () => {
+    setGoogleLoading(true)
     loginWithGoogle()
   }
 
@@ -83,12 +109,77 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-4">
+            <form onSubmit={handleCredentialLogin} className="space-y-3">
+              {error && (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">{t('login.email')}</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="glass-input"
+                  placeholder="name@lawfirm.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">{t('login.password')}</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="glass-input pr-10"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full py-3 text-base disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    {t('login.button')}
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[var(--border-color)]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-3 bg-[var(--bg-card)] text-[var(--text-muted)]">{t('login.orContinue')}</span>
+              </div>
+            </div>
+
             <button
               onClick={handleGoogleLogin}
-              disabled={loading}
+              disabled={googleLoading}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-[var(--border-color)] hover:border-[var(--accent)] bg-[var(--bg-card)] hover:bg-[var(--accent-light)] transition-all text-[var(--text-primary)] font-medium disabled:opacity-50"
             >
-              {loading ? (
+              {googleLoading ? (
                 <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
@@ -97,15 +188,6 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-
-            <div className="relative py-3">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[var(--border-color)]" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-[var(--bg-card)] text-[var(--text-muted)]">{t('login.orContinue')}</span>
-              </div>
-            </div>
 
             <div className="p-4 rounded-xl bg-[var(--accent-light)] border border-[var(--card-border)]">
               <div className="flex items-start gap-3">
@@ -116,20 +198,6 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
-
-            <ul className="space-y-2 pt-2">
-              {[
-                t('login.feature1'),
-                t('login.feature2'),
-                t('login.feature3'),
-                t('login.feature4'),
-              ].map((feature, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <ArrowRight className="w-3.5 h-3.5 text-[var(--accent)] flex-shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
 
