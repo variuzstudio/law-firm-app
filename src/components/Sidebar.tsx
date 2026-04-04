@@ -119,9 +119,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <div className="p-2.5 border-t border-[var(--border-color)]">
             <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--bg-card)]">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {user?.avatar}
-              </div>
+              {user?.image ? (
+                <img src={user.image} alt="" className="w-8 h-8 rounded-lg flex-shrink-0" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  {user?.avatar}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{user?.name}</p>
                 <p className="text-[10px] text-[var(--text-muted)] truncate">{user?.role}</p>

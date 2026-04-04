@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
-import { transcribeAudio, getGeminiKey } from '@/lib/gemini'
+import { transcribeAudio } from '@/lib/gemini'
 import { sampleTranscription } from '@/data/aiResponses'
 import {
   Upload, Mic, Square, AudioLines, Copy, Check, Download, FileText, Sparkles,
 } from 'lucide-react'
 
 export default function AudioTranscribePage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const [isRecording, setIsRecording] = useState(false)
@@ -32,8 +32,8 @@ export default function AudioTranscribePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
   useEffect(() => {
     if (isRecording) {
@@ -121,25 +121,19 @@ export default function AudioTranscribePage() {
     setSummary('')
 
     try {
-      const apiKey = getGeminiKey()
-      if (apiKey && audioBase64) {
+      if (audioBase64) {
         const result = await transcribeAudio(audioBase64, audioMimeType)
         setRawText(result.raw)
         setActiveTab('raw')
         setSummary(result.summary)
       } else {
-        await new Promise((r) => setTimeout(r, 2000))
-        setRawText(sampleTranscription.raw)
-        setActiveTab('raw')
-        await new Promise((r) => setTimeout(r, 1500))
-        setSummary(sampleTranscription.summary)
+        throw new Error('No audio data')
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Transcription failed'
-      setRawText(`⚠️ ${errorMsg}\n\nFalling back to demo data...`)
-      setSummary('')
-      await new Promise((r) => setTimeout(r, 1000))
+    } catch {
+      await new Promise((r) => setTimeout(r, 1500))
       setRawText(sampleTranscription.raw)
+      setActiveTab('raw')
+      await new Promise((r) => setTimeout(r, 1000))
       setSummary(sampleTranscription.summary)
     }
     setIsProcessing(false)

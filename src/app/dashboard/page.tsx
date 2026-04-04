@@ -4,14 +4,15 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useData } from '@/context/DataContext'
 import AppLayout from '@/components/AppLayout'
-import { chatWithGemini, getGeminiKey } from '@/lib/gemini'
+import { chatWithGemini } from '@/lib/gemini'
 import { getAiResponse } from '@/data/aiResponses'
 import {
   Briefcase, Users, Clock, ChevronRight, ArrowUpRight, ArrowDownRight,
   Send, Bot, User, Sparkles, AudioLines, BookOpenCheck, ScanText, Video, Calendar, FileText,
 } from 'lucide-react'
-import { cases, activities, calendarEvents, caseTypeData } from '@/data/mockData'
+import { caseTypeData } from '@/data/mockData'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -38,17 +39,10 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
     setIsTyping(true)
 
     try {
-      const apiKey = getGeminiKey()
-      if (apiKey) {
-        const history = messages.map((m) => ({ role: m.role, content: m.content }))
-        const response = await chatWithGemini([...history, { role: 'user', content: userMsg }])
-        setMessages((prev) => [...prev, { role: 'assistant', content: response }])
-      } else {
-        await new Promise((r) => setTimeout(r, 800))
-        setMessages((prev) => [...prev, { role: 'assistant', content: getAiResponse(userMsg) }])
-      }
+      const history = messages.map((m) => ({ role: m.role, content: m.content }))
+      const response = await chatWithGemini([...history, { role: 'user', content: userMsg }])
+      setMessages((prev) => [...prev, { role: 'assistant', content: response }])
     } catch {
-      await new Promise((r) => setTimeout(r, 500))
       setMessages((prev) => [...prev, { role: 'assistant', content: getAiResponse(userMsg) }])
     }
     setIsTyping(false)
@@ -143,19 +137,28 @@ function CaseDistribution() {
 }
 
 export default function DashboardPage() {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, loading } = useAuth()
   const { t } = useLanguage()
+  const { cases, events } = useData()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated || loading) return null
 
   const activeCases = cases.filter((c) => c.status === 'active').length
-  const upcomingEvents = calendarEvents.slice(0, 3)
-  const recentActivities = activities.slice(0, 4)
+  const upcomingEvents = events
+    .filter((e) => e.date >= '2026-03-28')
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 3)
+  const recentActivities = [
+    { id: 1, action: 'Document uploaded', user: 'Ahmad Faisal', time: '2 hours ago' },
+    { id: 2, action: 'Case updated', user: 'Siti Rahayu', time: '4 hours ago' },
+    { id: 3, action: 'New client added', user: 'Dewi Putri', time: '6 hours ago' },
+    { id: 4, action: 'Meeting scheduled', user: 'Ahmad Faisal', time: '1 day ago' },
+  ]
 
   const stats = [
     { label: t('dashboard.activeCases'), value: activeCases, icon: Briefcase, change: '+12%', up: true, color: 'from-cyan-500 to-blue-600' },
@@ -175,7 +178,7 @@ export default function DashboardPage() {
       <div className="space-y-5 max-w-[1400px] mx-auto">
         <div className="animate-fade-in">
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t('dashboard.welcome')}, {user?.name?.split(',')[0]}
+            {t('dashboard.welcome')}, {user?.name?.split(' ')[0]}
           </h1>
           <p className="text-[var(--text-muted)] mt-1">{t('dashboard.overview')}</p>
         </div>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
-import { compareLawArticles, getGeminiKey } from '@/lib/gemini'
+import { compareLawArticles } from '@/lib/gemini'
 import { lawCompareResult } from '@/data/aiResponses'
 import {
   BookOpenCheck, Plus, Trash2, Sparkles, CheckCircle2, XCircle, Lightbulb, Copy, Check,
@@ -19,7 +19,7 @@ interface Article {
 }
 
 export default function LawComparePage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const [articles, setArticles] = useState<Article[]>([
@@ -32,8 +32,8 @@ export default function LawComparePage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
   if (!isAuthenticated) return null
 
@@ -56,20 +56,14 @@ export default function LawComparePage() {
     setAnalysisText('')
 
     try {
-      const apiKey = getGeminiKey()
-      if (apiKey) {
-        const articlesForApi = articles.map((a) => ({
-          title: `${a.law} ${a.articleNumber}`.trim(),
-          content: a.content,
-        }))
-        const response = await compareLawArticles(articlesForApi)
-        setAnalysisText(response)
-      } else {
-        await new Promise((r) => setTimeout(r, 2500))
-        setResult(lawCompareResult)
-      }
+      const articlesForApi = articles.map((a) => ({
+        title: `${a.law} ${a.articleNumber}`.trim(),
+        content: a.content,
+      }))
+      const response = await compareLawArticles(articlesForApi)
+      setAnalysisText(response)
     } catch {
-      await new Promise((r) => setTimeout(r, 500))
+      await new Promise((r) => setTimeout(r, 1500))
       setResult(lawCompareResult)
     }
     setIsAnalyzing(false)

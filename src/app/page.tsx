@@ -5,19 +5,26 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
-import { Scale, Eye, EyeOff, Sun, Moon, Globe, ArrowRight } from 'lucide-react'
+import { Scale, Sun, Moon, Globe, ArrowRight, Sparkles } from 'lucide-react'
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+    </svg>
+  )
+}
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const { language, setLanguage, t } = useLanguage()
-  const { login, isAuthenticated } = useAuth()
+  const { isAuthenticated, loginWithGoogle, loading: authLoading } = useAuth()
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -25,22 +32,20 @@ export default function LoginPage() {
     if (isAuthenticated) router.push('/dashboard')
   }, [isAuthenticated, router])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+  const handleGoogleLogin = () => {
     setLoading(true)
-
-    await new Promise((r) => setTimeout(r, 800))
-
-    if (login(email, password)) {
-      router.push('/dashboard')
-    } else {
-      setError(language === 'en' ? 'Invalid credentials' : 'Email atau kata sandi salah')
-    }
-    setLoading(false)
+    loginWithGoogle()
   }
 
-  if (!mounted) return null
+  if (!mounted || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (isAuthenticated) return null
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -77,78 +82,55 @@ export default function LoginPage() {
             <p className="text-sm text-[var(--text-muted)] mt-1">{t('login.subtitle')}</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm text-center">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">{t('login.email')}</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="glass-input"
-                placeholder="name@lawfirm.com"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">{t('login.password')}</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="glass-input pr-10"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-[var(--border-color)] accent-blue-500" />
-                <span className="text-sm text-[var(--text-secondary)]">{t('login.remember')}</span>
-              </label>
-              <button type="button" className="text-sm text-[var(--accent)] hover:underline">
-                {t('login.forgot')}
-              </button>
-            </div>
-
+          <div className="space-y-4">
             <button
-              type="submit"
+              onClick={handleGoogleLogin}
               disabled={loading}
-              className="btn-primary w-full py-3 text-base disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-[var(--border-color)] hover:border-[var(--accent)] bg-[var(--bg-card)] hover:bg-[var(--accent-light)] transition-all text-[var(--text-primary)] font-medium disabled:opacity-50"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  {t('login.button')}
-                  <ArrowRight className="w-4 h-4" />
+                  <GoogleIcon />
+                  {t('login.googleButton')}
                 </>
               )}
             </button>
-          </form>
 
-          <p className="text-center text-sm text-[var(--text-muted)] mt-6">
-            {t('login.noAccount')}{' '}
-            <button className="text-[var(--accent)] hover:underline font-medium">
-              {t('login.register')}
-            </button>
-          </p>
+            <div className="relative py-3">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[var(--border-color)]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-3 bg-[var(--bg-card)] text-[var(--text-muted)]">{t('login.orContinue')}</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[var(--accent-light)] border border-[var(--card-border)]">
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-[var(--accent)] flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{t('login.aiPowered')}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">{t('login.aiDesc')}</p>
+                </div>
+              </div>
+            </div>
+
+            <ul className="space-y-2 pt-2">
+              {[
+                t('login.feature1'),
+                t('login.feature2'),
+                t('login.feature3'),
+                t('login.feature4'),
+              ].map((feature, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                  <ArrowRight className="w-3.5 h-3.5 text-[var(--accent)] flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <p className="text-center text-xs text-[var(--text-muted)] mt-6">

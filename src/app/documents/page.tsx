@@ -28,7 +28,7 @@ const typeColors: Record<string, string> = {
 }
 
 export default function DocumentsPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const [search, setSearch] = useState('')
@@ -41,8 +41,8 @@ export default function DocumentsPage() {
   const [uploadCase, setUploadCase] = useState('')
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
   if (!isAuthenticated) return null
 

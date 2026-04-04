@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
-import { scanDocument, getGeminiKey } from '@/lib/gemini'
+import { scanDocument } from '@/lib/gemini'
 import { ocrSampleResult } from '@/data/aiResponses'
 import {
   ScanText, Upload, Sparkles, Copy, Check, FileImage, FileText, Printer,
 } from 'lucide-react'
 
 export default function OcrToolPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const [hasFile, setHasFile] = useState(false)
@@ -26,8 +26,8 @@ export default function OcrToolPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
   const fileToBase64 = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -71,16 +71,14 @@ export default function OcrToolPage() {
     setResult('')
 
     try {
-      const apiKey = getGeminiKey()
-      if (apiKey && fileBase64) {
+      if (fileBase64) {
         const response = await scanDocument(fileBase64, fileMimeType)
         setResult(response)
       } else {
-        await new Promise((r) => setTimeout(r, 2500))
-        setResult(ocrSampleResult)
+        throw new Error('No file data')
       }
     } catch {
-      await new Promise((r) => setTimeout(r, 500))
+      await new Promise((r) => setTimeout(r, 1500))
       setResult(ocrSampleResult)
     }
     setIsScanning(false)

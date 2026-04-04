@@ -9,7 +9,7 @@ import { clients as initialClients } from '@/data/mockData'
 import { Plus, Search, Eye, Edit3, Trash2, X, Mail, Phone, Building2, User } from 'lucide-react'
 
 export default function ClientsPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const [search, setSearch] = useState('')
@@ -21,8 +21,8 @@ export default function ClientsPage() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', type: 'Individual' })
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
   if (!isAuthenticated) return null
 

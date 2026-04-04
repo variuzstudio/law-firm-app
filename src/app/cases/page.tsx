@@ -4,28 +4,28 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useData } from '@/context/DataContext'
 import AppLayout from '@/components/AppLayout'
-import { cases as initialCases } from '@/data/mockData'
 import {
   Plus, Search, Filter, Eye, Edit3, Trash2, X, ChevronDown,
 } from 'lucide-react'
 
 export default function CasesPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
+  const { cases: casesList, addCase, updateCase, deleteCase } = useData()
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [selectedCase, setSelectedCase] = useState<typeof initialCases[0] | null>(null)
+  const [selectedCase, setSelectedCase] = useState<typeof casesList[0] | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [casesList, setCasesList] = useState(initialCases)
   const [formData, setFormData] = useState({ name: '', client: '', type: 'Corporate', priority: 'medium', description: '' })
   const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.push('/')
+  }, [isAuthenticated, loading, router])
 
   if (!isAuthenticated) return null
 
@@ -51,34 +51,31 @@ export default function CasesPage() {
   }
 
   const handleDelete = (id: string) => {
-    setCasesList(casesList.filter((c) => c.id !== id))
+    deleteCase(id)
   }
 
   const handleSubmit = () => {
     if (editingId) {
-      setCasesList(casesList.map((c) =>
-        c.id === editingId ? { ...c, name: formData.name, client: formData.client, type: formData.type, priority: formData.priority, description: formData.description } : c
-      ))
+      updateCase(editingId, { name: formData.name, client: formData.client, type: formData.type, priority: formData.priority, description: formData.description })
     } else {
-      const newCase = {
+      addCase({
         id: `CSE-2026-${String(casesList.length + 1).padStart(3, '0')}`,
         name: formData.name,
         client: formData.client,
         type: formData.type,
-        status: 'active' as const,
+        status: 'active',
         priority: formData.priority,
         assignee: 'Ahmad Faisal',
         date: new Date().toISOString().split('T')[0],
         description: formData.description,
-      }
-      setCasesList([newCase, ...casesList])
+      })
     }
     setShowForm(false)
     setEditingId(null)
     setFormData({ name: '', client: '', type: 'Corporate', priority: 'medium', description: '' })
   }
 
-  const openEdit = (c: typeof initialCases[0]) => {
+  const openEdit = (c: typeof casesList[0]) => {
     setFormData({ name: c.name, client: c.client, type: c.type, priority: c.priority, description: c.description })
     setEditingId(c.id)
     setShowForm(true)
