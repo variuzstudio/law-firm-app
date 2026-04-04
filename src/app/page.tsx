@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useLanguage } from '@/context/LanguageContext'
 import { useAuth } from '@/context/AuthContext'
+import { getProviders } from 'next-auth/react'
 import { Scale, Eye, EyeOff, Sun, Moon, Globe, ArrowRight, Sparkles } from 'lucide-react'
 
 function GoogleIcon() {
@@ -25,6 +26,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleAvailable, setGoogleAvailable] = useState(false)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
@@ -36,6 +38,12 @@ export default function LoginPage() {
   useEffect(() => {
     if (isAuthenticated) router.push('/dashboard')
   }, [isAuthenticated, router])
+
+  useEffect(() => {
+    getProviders().then((providers) => {
+      if (providers?.google) setGoogleAvailable(true)
+    })
+  }, [])
 
   const handleCredentialLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,6 +67,10 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = () => {
+    if (!googleAvailable) {
+      setError(t('login.googleNotConfigured'))
+      return
+    }
     setGoogleLoading(true)
     loginWithGoogle()
   }
@@ -176,15 +188,19 @@ export default function LoginPage() {
 
             <button
               onClick={handleGoogleLogin}
-              disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-[var(--border-color)] hover:border-[var(--accent)] bg-[var(--bg-card)] hover:bg-[var(--accent-light)] transition-all text-[var(--text-primary)] font-medium disabled:opacity-50"
+              disabled={googleLoading || !googleAvailable}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 transition-all font-medium ${
+                googleAvailable
+                  ? 'border-[var(--border-color)] hover:border-[var(--accent)] bg-[var(--bg-card)] hover:bg-[var(--accent-light)] text-[var(--text-primary)]'
+                  : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] cursor-not-allowed opacity-50'
+              }`}
             >
               {googleLoading ? (
                 <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <GoogleIcon />
-                  {t('login.googleButton')}
+                  {googleAvailable ? t('login.googleButton') : t('login.googleNotReady')}
                 </>
               )}
             </button>

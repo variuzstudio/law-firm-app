@@ -53,7 +53,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const handleLogout = () => {
     logout()
-    window.location.href = '/'
   }
 
   const renderNavGroup = (label: string, items: typeof aiTools) => (
