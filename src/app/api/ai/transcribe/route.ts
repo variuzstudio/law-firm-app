@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
-const OPENROUTER_MODEL = 'openrouter/free'
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+const TRANSCRIBE_MODEL = 'google/gemini-2.0-flash-001'
+const SUMMARY_MODEL = 'google/gemini-2.0-flash-001'
 const SECRET = process.env.NEXTAUTH_SECRET || 'salomo-partners-dev-secret-change-in-production'
 
-async function callOpenRouter(apiKey: string, messages: unknown[]) {
+async function callOpenRouter(apiKey: string, model: string, messages: unknown[], temperature = 0.3) {
   const res = await fetch(OPENROUTER_URL, {
     method: 'POST',
     headers: {
@@ -16,45 +16,45 @@ async function callOpenRouter(apiKey: string, messages: unknown[]) {
       'X-Title': 'Salomo Partners Legal AI',
     },
     body: JSON.stringify({
-      model: OPENROUTER_MODEL,
+      model,
       messages,
-      temperature: 0.3,
+      temperature,
       max_tokens: 8192,
     }),
   })
   const data = await res.json()
-  if (data.error) throw new Error(`AI API: ${data.error.message || JSON.stringify(data.error)}`)
+  if (data.error) throw new Error(`OpenRouter API: ${data.error.message || JSON.stringify(data.error)}`)
   return data.choices?.[0]?.message?.content || ''
 }
 
-async function transcribeWithGemini(geminiKey: string, audioBase64: string, mimeType: string): Promise<string> {
-  const res = await fetch(`${GEMINI_URL}?key=${geminiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inline_data: { mime_type: mimeType || 'audio/webm', data: audioBase64 } },
-          { text: 'Transcribe this audio recording accurately. Return only the transcription text, preserving the original language. Do not add any commentary or labels.' },
-        ],
-      }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 8192,
+async function transcribeAudio(apiKey: string, audioBase64: string, mimeType: string): Promise<string> {
+  const dataUrl = `data:${mimeType || 'audio/webm'};base64,${audioBase64}`
+  return callOpenRouter(apiKey, TRANSCRIBE_MODEL, [{
+    role: 'user',
+    content: [
+      {
+        type: 'image_url',
+        image_url: { url: dataUrl },
       },
-    }),
-  })
-  const data = await res.json()
-  if (data.error) throw new Error(`Gemini API: ${data.error.message || JSON.stringify(data.error)}`)
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      {
+        type: 'text',
+        text: 'Transcribe this audio recording accurately. Return only the transcription text, preserving the original language. Do not add any commentary or labels.',
+      },
+    ],
+  }], 0.2)
 }
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: SECRET })
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const openrouterKey = process.env.OPENROUTER_API_KEY
-  const geminiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.OPENROUTER_API_KEY
+
+  if (!apiKey) {
+    return NextResponse.json({
+      error: 'OPENROUTER_API_KEY belum dikonfigurasi. Silakan hubungi administrator.',
+    }, { status: 503 })
+  }
 
   try {
     const { audioBase64, mimeType, audioText } = await req.json()
@@ -64,12 +64,6 @@ export async function POST(req: NextRequest) {
     if (audioText) {
       raw = audioText
     } else if (audioBase64) {
-      if (!geminiKey) {
-        return NextResponse.json({
-          error: 'GEMINI_API_KEY belum dikonfigurasi. Silakan hubungi administrator untuk mengaktifkan fitur transkripsi audio.',
-        }, { status: 503 })
-      }
-
       if (typeof audioBase64 !== 'string' || audioBase64.length < 100) {
         return NextResponse.json({ error: 'Data audio tidak valid atau kosong. Silakan rekam ulang.' }, { status: 400 })
       }
@@ -81,35 +75,17 @@ export async function POST(req: NextRequest) {
         }, { status: 413 })
       }
 
-      raw = await transcribeWithGemini(geminiKey, audioBase64, mimeType || 'audio/webm')
+      raw = await transcribeAudio(apiKey, audioBase64, mimeType || 'audio/webm')
     }
 
     if (!raw) {
       return NextResponse.json({ error: 'Tidak ada data audio atau teks untuk diproses.' }, { status: 400 })
     }
 
-    let summary = ''
-    if (openrouterKey) {
-      summary = await callOpenRouter(openrouterKey, [{
-        role: 'user',
-        content: `Berikut adalah transkrip dari sebuah rekaman audio. Buatkan ringkasan yang terstruktur dan profesional.\n\nTranskrip:\n${raw}\n\nBuat ringkasan dengan format:\n1. Poin-poin utama\n2. Kesimpulan\n3. Tindak lanjut yang disarankan (jika ada)`,
-      }])
-    } else if (geminiKey) {
-      const summaryRes = await fetch(`${GEMINI_URL}?key=${geminiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Berikut adalah transkrip dari sebuah rekaman audio. Buatkan ringkasan yang terstruktur dan profesional.\n\nTranskrip:\n${raw}\n\nBuat ringkasan dengan format:\n1. Poin-poin utama\n2. Kesimpulan\n3. Tindak lanjut yang disarankan (jika ada)`,
-            }],
-          }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 8192 },
-        }),
-      })
-      const summaryData = await summaryRes.json()
-      summary = summaryData.candidates?.[0]?.content?.parts?.[0]?.text || ''
-    }
+    const summary = await callOpenRouter(apiKey, SUMMARY_MODEL, [{
+      role: 'user',
+      content: `Berikut adalah transkrip dari sebuah rekaman audio. Buatkan ringkasan yang terstruktur dan profesional.\n\nTranskrip:\n${raw}\n\nBuat ringkasan dengan format:\n1. Poin-poin utama\n2. Kesimpulan\n3. Tindak lanjut yang disarankan (jika ada)`,
+    }])
 
     return NextResponse.json({ raw, summary })
   } catch (err) {
