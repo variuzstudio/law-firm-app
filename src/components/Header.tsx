@@ -66,7 +66,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             </button>
           )}
 
-          <Link href="/dashboard" className="flex items-center gap-2 mr-2">
+          <Link href="/dashboard" className="flex items-center gap-2 mr-2 md:hidden">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
               <Scale className="w-3.5 h-3.5 text-white" />
             </div>
