@@ -66,14 +66,26 @@ export async function POST(req: NextRequest) {
     } else if (audioBase64) {
       if (!geminiKey) {
         return NextResponse.json({
-          error: 'Audio transcription requires GEMINI_API_KEY. Please configure it in environment variables, or use the Record Audio feature for browser-based transcription.',
+          error: 'GEMINI_API_KEY belum dikonfigurasi. Silakan hubungi administrator untuk mengaktifkan fitur transkripsi audio.',
         }, { status: 503 })
       }
-      raw = await transcribeWithGemini(geminiKey, audioBase64, mimeType)
+
+      if (typeof audioBase64 !== 'string' || audioBase64.length < 100) {
+        return NextResponse.json({ error: 'Data audio tidak valid atau kosong. Silakan rekam ulang.' }, { status: 400 })
+      }
+
+      const sizeInMB = (audioBase64.length * 3) / 4 / 1024 / 1024
+      if (sizeInMB > 3.5) {
+        return NextResponse.json({
+          error: `File audio terlalu besar (${sizeInMB.toFixed(1)}MB). Maksimum 3.5MB. Coba rekam audio yang lebih pendek.`,
+        }, { status: 413 })
+      }
+
+      raw = await transcribeWithGemini(geminiKey, audioBase64, mimeType || 'audio/webm')
     }
 
     if (!raw) {
-      return NextResponse.json({ error: 'No audio data or text provided' }, { status: 400 })
+      return NextResponse.json({ error: 'Tidak ada data audio atau teks untuk diproses.' }, { status: 400 })
     }
 
     let summary = ''

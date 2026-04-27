@@ -39,6 +39,7 @@ export default function AudioTranscribePage() {
   const [interimText, setInterimText] = useState('')
   const [speechSupported, setSpeechSupported] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const isRecordingRef = useRef(false)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
@@ -445,6 +446,8 @@ export default function AudioTranscribePage() {
     const selectedRec = recordings.find((r) => r.id === selectedRecordingId)
     if (!selectedRec) return
 
+    setErrorMsg('')
+
     if (selectedRec.transcript) {
       setRawText(selectedRec.transcript)
       setActiveTab('raw')
@@ -464,6 +467,22 @@ export default function AudioTranscribePage() {
     try {
       const response = await fetch(selectedRec.blobUrl)
       const blob = await response.blob()
+
+      if (blob.size < 100) {
+        setErrorMsg(language === 'id' ? 'Data audio kosong. Silakan rekam ulang.' : 'Audio data is empty. Please re-record.')
+        setIsProcessing(false)
+        return
+      }
+
+      const sizeMB = blob.size / 1024 / 1024
+      if (sizeMB > 3.5) {
+        setErrorMsg(language === 'id'
+          ? `File terlalu besar (${sizeMB.toFixed(1)}MB). Maksimum 3.5MB. Rekam audio yang lebih pendek.`
+          : `File too large (${sizeMB.toFixed(1)}MB). Maximum 3.5MB. Record shorter audio.`)
+        setIsProcessing(false)
+        return
+      }
+
       const base64 = await blobToBase64(blob)
 
       const apiRes = await fetch('/api/ai/transcribe', {
@@ -476,19 +495,15 @@ export default function AudioTranscribePage() {
       if (apiRes.ok && data.raw) {
         setRawText(data.raw)
         setSummary(data.summary || '')
+        setActiveTab('raw')
         setRecordings((prev) => prev.map((r) => r.id === selectedRec.id ? { ...r, transcript: data.raw } : r))
       } else {
-        const hint = language === 'id'
-          ? '💡 Untuk file audio yang diunggah, gunakan fitur "Rekam Audio" untuk hasil terbaik.\n\nFitur rekam menggunakan pengenalan suara real-time yang bekerja langsung di browser tanpa memerlukan API tambahan.\n\nCara penggunaan:\n1. Klik tombol mikrofon untuk mulai merekam\n2. Bicara dengan jelas\n3. Teks akan muncul secara real-time saat Anda berbicara\n4. Klik stop untuk menyelesaikan rekaman'
-          : '💡 For uploaded audio files, use the "Record Audio" feature for best results.\n\nRecording uses real-time speech recognition that works directly in your browser without additional API.\n\nHow to use:\n1. Click the microphone button to start recording\n2. Speak clearly\n3. Text will appear in real-time as you speak\n4. Click stop to finish recording'
-        setRawText(hint)
-        setActiveTab('raw')
+        setErrorMsg(data.error || (language === 'id' ? 'Gagal melakukan transkripsi.' : 'Transcription failed.'))
       }
-    } catch {
-      setRawText(language === 'id'
-        ? '⚠️ Gagal memproses audio. Gunakan fitur Rekam Audio untuk transkripsi otomatis.'
-        : '⚠️ Failed to process audio. Use the Record Audio feature for automatic transcription.')
-      setActiveTab('raw')
+    } catch (err) {
+      setErrorMsg(language === 'id'
+        ? `Gagal memproses audio: ${(err as Error).message}`
+        : `Failed to process audio: ${(err as Error).message}`)
     }
     setIsProcessing(false)
   }
@@ -529,205 +544,227 @@ export default function AudioTranscribePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-2 space-y-4">
-            <div className="glass-card p-5">
-              <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-4">{t('audio.record')}</h3>
-              <div className="flex flex-col items-center py-4">
-                <button
-                  onClick={handleRecord}
-                  className={`w-24 h-24 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 ${
-                    isRecording
-                      ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/30'
-                      : 'bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 shadow-rose-500/20'
-                  }`}
-                >
-                  {isRecording ? <Square className="w-8 h-8 text-white" /> : <Mic className="w-8 h-8 text-white" />}
-                </button>
-                <p className="text-xs text-[var(--text-muted)] mt-3">
-                  {isRecording
-                    ? t('audio.stop')
-                    : t('audio.record')}
-                </p>
-
-                {isRecording && (
-                  <div className="mt-3 text-center w-full">
-                    <p className="text-2xl font-mono font-bold text-red-500">{formatTime(recordingTime)}</p>
-                    <p className="text-xs text-red-400 mt-1 flex items-center gap-1 justify-center">
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      {t('audio.recording')}
-                    </p>
-                    {(liveTranscript || interimText) && (
-                      <div className="mt-3 p-3 rounded-xl bg-[var(--bg-input)] text-left max-h-[120px] overflow-y-auto border border-[var(--border-color)]">
-                        <p className="text-xs text-[var(--text-primary)] leading-relaxed">
-                          {liveTranscript}
-                          {interimText && <span className="text-[var(--accent)] italic"> {interimText}</span>}
-                        </p>
-                      </div>
-                    )}
-                    {!liveTranscript && !interimText && speechSupported && recordingTime > 2 && (
-                      <p className="text-xs text-[var(--text-muted)] mt-2 italic">
-                        {language === 'id' ? 'Mendengarkan... Silakan bicara.' : 'Listening... Please speak.'}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {!speechSupported && (
-                <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-amber-500">
-                    {language === 'id'
-                      ? 'Browser Anda tidak mendukung pengenalan suara. Gunakan Chrome atau Edge untuk hasil terbaik.'
-                      : 'Your browser does not support speech recognition. Use Chrome or Edge for best results.'}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {recordings.length > 0 && (
-              <div className="glass-card p-5">
-                <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-3 flex items-center gap-2">
-                  <AudioLines className="w-4 h-4" /> {t('audio.recordings')} ({recordings.length})
-                </h3>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {recordings.map((rec) => (
-                    <div
-                      key={rec.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
-                        selectedRecordingId === rec.id
-                          ? 'bg-[var(--accent)] bg-opacity-10 border border-[var(--accent)] border-opacity-30'
-                          : 'hover:bg-[var(--accent-light)] border border-transparent'
-                      }`}
-                      onClick={() => handleSelectRecording(rec)}
-                    >
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handlePlayPause(rec) }}
-                        className={`w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
-                          playingId === rec.id
-                            ? 'bg-[var(--accent)] text-white shadow-lg'
-                            : 'bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white'
-                        }`}
-                      >
-                        {playingId === rec.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[var(--text-primary)] truncate">{rec.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
-                            <Clock className="w-3 h-3" />
-                            {rec.duration > 0 ? formatTime(rec.duration) : '--:--'}
-                          </span>
-                          {rec.transcript && (
-                            <span className="text-xs text-emerald-500 font-medium">✓ {language === 'id' ? 'Tertranskripsi' : 'Transcribed'}</span>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteRecording(rec.id) }}
-                        className="p-2 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 flex-shrink-0 active:scale-95"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="glass-card p-5">
-              <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-4">{t('audio.upload')}</h3>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <div
-                onClick={handleUpload}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer active:scale-[0.98] ${
-                  isDragging
-                    ? 'border-[var(--accent)] bg-[var(--accent-light)] scale-[1.02]'
-                    : 'border-[var(--border-color)] hover:border-[var(--accent)]'
+        {/* Record + Upload Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="glass-card p-4">
+            <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-3">{t('audio.record')}</h3>
+            <div className="flex flex-col items-center py-3">
+              <button
+                onClick={handleRecord}
+                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 ${
+                  isRecording
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/30'
+                    : 'bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 shadow-rose-500/20'
                 }`}
               >
-                <Upload className={`w-8 h-8 mx-auto mb-2 transition-colors ${isDragging ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`} />
-                <p className="text-sm text-[var(--text-secondary)]">{t('audio.dragDrop')}</p>
-                <p className="text-xs text-[var(--text-muted)] mt-1">{t('audio.formats')}</p>
-              </div>
-              {selectedRecordingId && fileName && (
-                <div className="mt-3 flex items-center gap-2 p-2.5 rounded-xl bg-[var(--accent-light)]">
-                  <FileText className="w-4 h-4 text-[var(--accent)] flex-shrink-0" />
-                  <span className="text-sm text-[var(--text-primary)] truncate flex-1">{fileName}</span>
-                  <span className="text-xs text-emerald-500 font-medium flex-shrink-0">Ready</span>
+                {isRecording ? <Square className="w-7 h-7 text-white" /> : <Mic className="w-7 h-7 text-white" />}
+              </button>
+              <p className="text-xs text-[var(--text-muted)] mt-2">
+                {isRecording ? t('audio.stop') : t('audio.record')}
+              </p>
+
+              {isRecording && (
+                <div className="mt-2 text-center w-full">
+                  <p className="text-xl font-mono font-bold text-red-500">{formatTime(recordingTime)}</p>
+                  <p className="text-xs text-red-400 mt-1 flex items-center gap-1 justify-center">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    {t('audio.recording')}
+                  </p>
+                  {(liveTranscript || interimText) && (
+                    <div className="mt-2 p-2 rounded-lg bg-[var(--bg-input)] text-left max-h-[80px] overflow-y-auto border border-[var(--border-color)]">
+                      <p className="text-xs text-[var(--text-primary)] leading-relaxed">
+                        {liveTranscript}
+                        {interimText && <span className="text-[var(--accent)] italic"> {interimText}</span>}
+                      </p>
+                    </div>
+                  )}
+                  {!liveTranscript && !interimText && speechSupported && recordingTime > 2 && (
+                    <p className="text-xs text-[var(--text-muted)] mt-1 italic">
+                      {language === 'id' ? 'Mendengarkan...' : 'Listening...'}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
 
-            <button
-              onClick={handleTranscribe}
-              disabled={!selectedRecordingId || isProcessing || isRecording}
-              className="btn-primary w-full py-3.5 text-base disabled:opacity-50 active:scale-[0.98]"
+            {!speechSupported && (
+              <div className="mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-500">
+                  {language === 'id'
+                    ? 'Browser tidak mendukung pengenalan suara langsung. Audio tetap direkam dan bisa ditranskripsi via AI.'
+                    : 'Browser does not support live speech recognition. Audio is still recorded and can be transcribed via AI.'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="glass-card p-4">
+            <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-3">{t('audio.upload')}</h3>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <div
+              onClick={handleUpload}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-5 text-center transition-all cursor-pointer active:scale-[0.98] ${
+                isDragging
+                  ? 'border-[var(--accent)] bg-[var(--accent-light)] scale-[1.02]'
+                  : 'border-[var(--border-color)] hover:border-[var(--accent)]'
+              }`}
             >
-              {isProcessing ? (
-                <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('audio.processing')}</>
-              ) : (
-                <><Sparkles className="w-5 h-5" /> {t('audio.transcribe')}</>
+              <Upload className={`w-7 h-7 mx-auto mb-2 transition-colors ${isDragging ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`} />
+              <p className="text-sm text-[var(--text-secondary)]">{t('audio.dragDrop')}</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">{t('audio.formats')}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Recordings List */}
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm text-[var(--text-primary)] flex items-center gap-2">
+              <AudioLines className="w-4 h-4" />
+              {language === 'id' ? 'Daftar Rekaman' : 'Recordings'}
+              {recordings.length > 0 && (
+                <span className="text-xs font-normal text-[var(--text-muted)]">({recordings.length})</span>
               )}
+            </h3>
+            {selectedRecordingId && (
+              <button
+                onClick={handleTranscribe}
+                disabled={isProcessing || isRecording}
+                className="btn-primary text-xs py-2 px-4 disabled:opacity-50 active:scale-95"
+              >
+                {isProcessing ? (
+                  <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('audio.processing')}</>
+                ) : (
+                  <><Sparkles className="w-3.5 h-3.5" /> {t('audio.transcribe')}</>
+                )}
+              </button>
+            )}
+          </div>
+
+          {errorMsg && (
+            <div className="mb-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-red-400 font-medium">{errorMsg}</p>
+                <button onClick={() => setErrorMsg('')} className="text-xs text-red-400/70 hover:text-red-400 mt-1 underline">
+                  {language === 'id' ? 'Tutup' : 'Dismiss'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {recordings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="w-12 h-12 rounded-full bg-[var(--bg-input)] flex items-center justify-center mb-3">
+                <Mic className="w-6 h-6 text-[var(--text-muted)]" />
+              </div>
+              <p className="text-sm text-[var(--text-muted)]">
+                {language === 'id' ? 'Belum ada rekaman' : 'No recordings yet'}
+              </p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
+                {language === 'id' ? 'Rekam atau unggah audio untuk memulai' : 'Record or upload audio to get started'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-[350px] overflow-y-auto">
+              {recordings.map((rec) => (
+                <div
+                  key={rec.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+                    selectedRecordingId === rec.id
+                      ? 'bg-[var(--accent)] bg-opacity-10 border border-[var(--accent)] border-opacity-30'
+                      : 'hover:bg-[var(--accent-light)] border border-transparent'
+                  }`}
+                  onClick={() => handleSelectRecording(rec)}
+                >
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handlePlayPause(rec) }}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
+                      playingId === rec.id
+                        ? 'bg-[var(--accent)] text-white shadow-lg'
+                        : 'bg-[var(--accent-light)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white'
+                    }`}
+                  >
+                    {playingId === rec.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">{rec.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+                        <Clock className="w-3 h-3" />
+                        {rec.duration > 0 ? formatTime(rec.duration) : '--:--'}
+                      </span>
+                      {rec.transcript && (
+                        <span className="text-xs text-emerald-500 font-medium">✓ {language === 'id' ? 'Tertranskripsi' : 'Transcribed'}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteRecording(rec.id) }}
+                    className="p-2 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 flex-shrink-0 active:scale-95"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Results Panel */}
+        <div className="glass-card flex flex-col min-h-[250px] lg:min-h-[400px]">
+          <div className="flex items-center border-b border-[var(--border-color)]">
+            <button
+              onClick={() => setActiveTab('raw')}
+              className={`flex-1 py-3 text-sm font-medium text-center transition-colors border-b-2 ${
+                activeTab === 'raw' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              {t('audio.rawText')}
+            </button>
+            <button
+              onClick={() => setActiveTab('summary')}
+              className={`flex-1 py-3 text-sm font-medium text-center transition-colors border-b-2 ${
+                activeTab === 'summary' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              {t('audio.summary')} <Sparkles className="w-3 h-3 inline text-amber-400" />
             </button>
           </div>
 
-          <div className="lg:col-span-3">
-            <div className="glass-card flex flex-col h-full min-h-[300px] lg:min-h-[500px]">
-              <div className="flex items-center border-b border-[var(--border-color)]">
-                <button
-                  onClick={() => setActiveTab('raw')}
-                  className={`flex-1 py-3 text-sm font-medium text-center transition-colors border-b-2 ${
-                    activeTab === 'raw' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                  }`}
-                >
-                  {t('audio.rawText')}
-                </button>
-                <button
-                  onClick={() => setActiveTab('summary')}
-                  className={`flex-1 py-3 text-sm font-medium text-center transition-colors border-b-2 ${
-                    activeTab === 'summary' ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                  }`}
-                >
-                  {t('audio.summary')} <Sparkles className="w-3 h-3 inline text-amber-400" />
-                </button>
+          <div className="flex-1 p-4 overflow-y-auto">
+            {(activeTab === 'raw' ? rawText : summary) ? (
+              <div className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
+                {activeTab === 'raw' ? rawText : summary}
               </div>
-
-              <div className="flex-1 p-4 overflow-y-auto">
-                {(activeTab === 'raw' ? rawText : summary) ? (
-                  <div className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
-                    {activeTab === 'raw' ? rawText : summary}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                    <AudioLines className="w-12 h-12 text-[var(--text-muted)] mb-3" />
-                    <p className="text-sm text-[var(--text-muted)]">{t('audio.noTranscription')}</p>
-                  </div>
-                )}
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
+                <AudioLines className="w-10 h-10 text-[var(--text-muted)] mb-3" />
+                <p className="text-sm text-[var(--text-muted)]">{t('audio.noTranscription')}</p>
               </div>
-
-              {(rawText || summary) && (
-                <div className="p-3 border-t border-[var(--border-color)] flex items-center gap-2 flex-wrap">
-                  <button onClick={handleCopy} className="btn-secondary text-xs py-2 px-3 active:scale-95">
-                    {copied ? <><Check className="w-3 h-3" /> Copied!</> : <><Copy className="w-3 h-3" /> {t('audio.copyText')}</>}
-                  </button>
-                  <button onClick={handleDownload} className="btn-secondary text-xs py-2 px-3 active:scale-95">
-                    <Download className="w-3 h-3" /> {language === 'id' ? 'Unduh' : 'Download'}
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
           </div>
+
+          {(rawText || summary) && (
+            <div className="p-3 border-t border-[var(--border-color)] flex items-center gap-2 flex-wrap">
+              <button onClick={handleCopy} className="btn-secondary text-xs py-2 px-3 active:scale-95">
+                {copied ? <><Check className="w-3 h-3" /> Copied!</> : <><Copy className="w-3 h-3" /> {t('audio.copyText')}</>}
+              </button>
+              <button onClick={handleDownload} className="btn-secondary text-xs py-2 px-3 active:scale-95">
+                <Download className="w-3 h-3" /> {language === 'id' ? 'Unduh' : 'Download'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>
