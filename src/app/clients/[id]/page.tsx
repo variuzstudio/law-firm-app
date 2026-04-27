@@ -9,7 +9,7 @@ import AppLayout from '@/components/AppLayout'
 import Link from 'next/link'
 import {
   ArrowLeft, Edit3, Trash2, Save, X, Mail, Phone, Building2, User,
-  Briefcase, Calendar, CheckCircle2, AlertTriangle,
+  Briefcase, Calendar,
 } from 'lucide-react'
 
 export default function ClientDetailPage() {

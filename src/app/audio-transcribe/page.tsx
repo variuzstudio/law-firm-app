@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
 import {
-  Upload, Mic, Square, AudioLines, Copy, Check, Download, FileText, Sparkles,
+  Upload, Mic, Square, AudioLines, Copy, Check, Download, Sparkles,
   Play, Pause, Trash2, Clock, AlertCircle,
 } from 'lucide-react'
 
@@ -518,11 +518,12 @@ export default function AudioTranscribePage() {
   const handleDownload = () => {
     const text = activeTab === 'raw' ? rawText : summary
     const label = activeTab === 'raw' ? 'Transcription' : 'AI_Summary'
+    const prefix = fileName ? fileName.replace(/\.[^.]+$/, '') : 'Salomo_Partners'
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `Salomo_Partners_${label}_${new Date().toISOString().slice(0, 10)}.txt`
+    a.download = `${prefix}_${label}_${new Date().toISOString().slice(0, 10)}.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

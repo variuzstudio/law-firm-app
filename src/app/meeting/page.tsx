@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
 import {
-  Video, Copy, Check, Plus, Clock, Calendar, Link2, Users, ExternalLink, Trash2,
+  Video, Copy, Check, Plus, Calendar, Link2, Users, ExternalLink, Trash2,
 } from 'lucide-react'
 
 interface MeetingLink {
@@ -18,7 +18,7 @@ interface MeetingLink {
 }
 
 export default function MeetingPage() {
-  const { isAuthenticated, user, loading } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
   const router = useRouter()
   const [copiedId, setCopiedId] = useState<string | null>(null)
