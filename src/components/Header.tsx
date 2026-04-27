@@ -113,7 +113,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <ChevronDown className="w-3 h-3 text-[var(--text-muted)]" />
             </button>
             {langOpen && (
-              <div className="absolute right-0 top-full mt-4 w-40 glass-card p-1.5 shadow-elegant-lg z-50">
+              <div className="absolute right-6 top-full mt-6 w-40 glass-card p-1.5 shadow-elegant-lg z-50" style={{ backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
                 <button
                   onClick={() => { setLanguage('en'); setLangOpen(false) }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors ${
@@ -143,7 +143,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.6)]" />
             </button>
             {notifOpen && (
-              <div className="absolute right-6 top-full mt-6 w-80 glass-card shadow-elegant-lg overflow-hidden z-50">
+              <div className="absolute right-6 top-full mt-6 w-80 glass-card shadow-elegant-lg overflow-hidden z-50" style={{ backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
                 <div className="p-3 border-b border-[var(--border-color)]">
                   <h3 className="font-semibold text-sm text-[var(--text-primary)]">
                     {language === 'en' ? 'Notifications' : 'Notifikasi'}
