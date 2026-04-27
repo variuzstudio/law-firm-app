@@ -629,28 +629,13 @@ export default function AudioTranscribePage() {
 
         {/* Recordings List */}
         <div className="glass-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm text-[var(--text-primary)] flex items-center gap-2">
-              <AudioLines className="w-4 h-4" />
-              {language === 'id' ? 'Daftar Rekaman' : 'Recordings'}
-              {recordings.length > 0 && (
-                <span className="text-xs font-normal text-[var(--text-muted)]">({recordings.length})</span>
-              )}
-            </h3>
-            {selectedRecordingId && (
-              <button
-                onClick={handleTranscribe}
-                disabled={isProcessing || isRecording}
-                className="btn-primary text-xs py-2 px-4 disabled:opacity-50 active:scale-95"
-              >
-                {isProcessing ? (
-                  <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('audio.processing')}</>
-                ) : (
-                  <><Sparkles className="w-3.5 h-3.5" /> {t('audio.transcribe')}</>
-                )}
-              </button>
+          <h3 className="font-semibold text-sm text-[var(--text-primary)] flex items-center gap-2 mb-3">
+            <AudioLines className="w-4 h-4" />
+            {language === 'id' ? 'Daftar Rekaman' : 'Recordings'}
+            {recordings.length > 0 && (
+              <span className="text-xs font-normal text-[var(--text-muted)]">({recordings.length})</span>
             )}
-          </div>
+          </h3>
 
           {errorMsg && (
             <div className="mb-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2">
@@ -683,7 +668,7 @@ export default function AudioTranscribePage() {
                   key={rec.id}
                   className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
                     selectedRecordingId === rec.id
-                      ? 'bg-[var(--accent)] bg-opacity-10 border border-[var(--accent)] border-opacity-30'
+                      ? 'bg-[var(--accent)] border border-[var(--accent)]'
                       : 'hover:bg-[var(--accent-light)] border border-transparent'
                   }`}
                   onClick={() => handleSelectRecording(rec)}
@@ -699,26 +684,40 @@ export default function AudioTranscribePage() {
                     {playingId === rec.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">{rec.name}</p>
+                    <p className={`text-sm font-medium truncate ${selectedRecordingId === rec.id ? 'text-white' : 'text-[var(--text-primary)]'}`}>{rec.name}</p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+                      <span className={`flex items-center gap-1 text-xs ${selectedRecordingId === rec.id ? 'text-white/70' : 'text-[var(--text-muted)]'}`}>
                         <Clock className="w-3 h-3" />
                         {rec.duration > 0 ? formatTime(rec.duration) : '--:--'}
                       </span>
                       {rec.transcript && (
-                        <span className="text-xs text-emerald-500 font-medium">✓ {language === 'id' ? 'Tertranskripsi' : 'Transcribed'}</span>
+                        <span className={`text-xs font-medium ${selectedRecordingId === rec.id ? 'text-white/90' : 'text-emerald-500'}`}>✓ {language === 'id' ? 'Tertranskripsi' : 'Transcribed'}</span>
                       )}
                     </div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDeleteRecording(rec.id) }}
-                    className="p-2 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500 flex-shrink-0 active:scale-95"
+                    className={`p-2 rounded-lg flex-shrink-0 active:scale-95 ${selectedRecordingId === rec.id ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10'}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
             </div>
+          )}
+
+          {selectedRecordingId && (
+            <button
+              onClick={handleTranscribe}
+              disabled={isProcessing || isRecording}
+              className="btn-primary w-full py-3 text-sm mt-3 disabled:opacity-50 active:scale-[0.98]"
+            >
+              {isProcessing ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('audio.processing')}</>
+              ) : (
+                <><Sparkles className="w-4 h-4" /> {t('audio.transcribe')}</>
+              )}
+            </button>
           )}
         </div>
 
