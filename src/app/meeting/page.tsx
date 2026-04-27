@@ -41,7 +41,9 @@ export default function MeetingPage() {
 
   const createMeeting = () => {
     const title = newTitle.trim() || 'Salomo Partners Meeting'
-    const meetLink = `https://meet.google.com/new`
+    // Use Android intent to open Google Meet app directly on mobile
+    const meetLink = 'https://meet.google.com/new'
+    const deepLink = 'intent://meet.google.com/new#Intent;package=com.google.android.apps.meetings;scheme=https;end'
 
     const meeting: MeetingLink = {
       id: Date.now().toString(),
@@ -53,11 +55,23 @@ export default function MeetingPage() {
     setNewTitle('')
     setShowCreate(false)
 
-    window.open(meetLink, '_blank', 'noopener,noreferrer')
+    // Try deep link first (for Android), fallback to regular link
+    const isMobile = /Android/i.test(navigator.userAgent)
+    if (isMobile) {
+      window.location.href = deepLink
+    } else {
+      window.open(meetLink, '_blank', 'noopener,noreferrer')
+    }
   }
 
   const openMeeting = (link: string) => {
-    window.open(link, '_blank', 'noopener,noreferrer')
+    const isMobile = /Android/i.test(navigator.userAgent)
+    if (isMobile && link.includes('meet.google.com')) {
+      const deepLink = link.replace('https://', 'intent://') + '#Intent;package=com.google.android.apps.meetings;scheme=https;end'
+      window.location.href = deepLink
+    } else {
+      window.open(link, '_blank', 'noopener,noreferrer')
+    }
   }
 
   const joinMeetingByLink = () => {
@@ -66,7 +80,13 @@ export default function MeetingPage() {
     if (!link.startsWith('http')) {
       link = `https://meet.google.com/${link}`
     }
-    window.open(link, '_blank', 'noopener,noreferrer')
+    const isMobile = /Android/i.test(navigator.userAgent)
+    if (isMobile) {
+      const deepLink = link.replace('https://', 'intent://') + '#Intent;package=com.google.android.apps.meetings;scheme=https;end'
+      window.location.href = deepLink
+    } else {
+      window.open(link, '_blank', 'noopener,noreferrer')
+    }
     setJoinLink('')
   }
 
@@ -198,9 +218,9 @@ export default function MeetingPage() {
                 {t('meeting.gmeetNote')}
               </p>
               <div className="flex gap-3">
-                <button onClick={() => setShowCreate(false)} className="btn-secondary flex-1">{t('common.cancel')}</button>
-                <button onClick={createMeeting} className="btn-primary flex-1">
-                  <ExternalLink className="w-4 h-4" /> {t('meeting.openGmeet')}
+                <button onClick={() => setShowCreate(false)} className="btn-secondary flex-1 text-xs py-2">{t('common.cancel')}</button>
+                <button onClick={createMeeting} className="btn-primary flex-1 text-xs py-2">
+                  {t('meeting.openGmeet')}
                 </button>
               </div>
             </div>
