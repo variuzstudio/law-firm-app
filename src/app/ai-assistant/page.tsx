@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
 import { chatWithGemini } from '@/lib/gemini'
-import { getAiResponse } from '@/data/aiResponses'
 import { Send, Bot, User, Sparkles, Trash2, Copy, Check } from 'lucide-react'
 
 interface ChatMessage {
@@ -48,9 +47,9 @@ export default function AiAssistantPage() {
       const history = messages.map((m) => ({ role: m.role, content: m.content }))
       const response = await chatWithGemini([...history, { role: 'user', content: userMsg }])
       setMessages((prev) => [...prev, { role: 'assistant', content: response, timestamp: new Date() }])
-    } catch {
-      const response = getAiResponse(userMsg)
-      setMessages((prev) => [...prev, { role: 'assistant', content: response, timestamp: new Date() }])
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown error'
+      setMessages((prev) => [...prev, { role: 'assistant', content: `⚠️ AI Error: ${errMsg}\n\nPlease try again or contact support.`, timestamp: new Date() }])
     }
     setIsTyping(false)
   }

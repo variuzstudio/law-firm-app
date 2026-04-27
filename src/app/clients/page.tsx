@@ -4,18 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useData } from '@/context/DataContext'
 import AppLayout from '@/components/AppLayout'
-import { clients as initialClients } from '@/data/mockData'
-import { Plus, Search, Eye, Edit3, Trash2, X, Mail, Phone, Building2, User } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Search, Edit3, Trash2, X, Mail, Phone, Building2 } from 'lucide-react'
 
 export default function ClientsPage() {
   const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
+  const { clients: clientsList, addClient, updateClient, deleteClient } = useData()
   const router = useRouter()
   const [search, setSearch] = useState('')
-  const [clientsList, setClientsList] = useState(initialClients)
-  const [selectedClient, setSelectedClient] = useState<typeof initialClients[0] | null>(null)
-  const [showModal, setShowModal] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', type: 'Individual' })
@@ -32,25 +31,29 @@ export default function ClientsPage() {
     c.company.toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleDelete = (id: number) => setClientsList(clientsList.filter((c) => c.id !== id))
+  const handleDelete = (e: React.MouseEvent, id: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    deleteClient(id)
+  }
 
   const handleSubmit = () => {
     if (editingId) {
-      setClientsList(clientsList.map((c) =>
-        c.id === editingId ? { ...c, name: formData.name, email: formData.email, phone: formData.phone, company: formData.company, type: formData.type } : c
-      ))
+      updateClient(editingId, { name: formData.name, email: formData.email, phone: formData.phone, company: formData.company, type: formData.type })
     } else {
-      setClientsList([{
-        id: clientsList.length + 1, name: formData.name, email: formData.email, phone: formData.phone,
+      addClient({
+        id: Date.now(), name: formData.name, email: formData.email, phone: formData.phone,
         company: formData.company || '-', cases: 0, status: 'active', joined: new Date().toISOString().split('T')[0], type: formData.type,
-      }, ...clientsList])
+      })
     }
     setShowForm(false)
     setEditingId(null)
     setFormData({ name: '', email: '', phone: '', company: '', type: 'Individual' })
   }
 
-  const openEdit = (c: typeof initialClients[0]) => {
+  const openEdit = (e: React.MouseEvent, c: typeof clientsList[0]) => {
+    e.preventDefault()
+    e.stopPropagation()
     setFormData({ name: c.name, email: c.email, phone: c.phone, company: c.company, type: c.type })
     setEditingId(c.id)
     setShowForm(true)
@@ -77,14 +80,14 @@ export default function ClientsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map((c) => (
-              <div key={c.id} className="glass-card p-4 flex flex-col">
+              <Link key={c.id} href={`/clients/${c.id}`} className="glass-card p-4 flex flex-col hover:border-[var(--accent)] hover:border-opacity-30 transition-all group">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                       {c.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-[var(--text-primary)] text-sm">{c.name}</h3>
+                      <h3 className="font-semibold text-[var(--text-primary)] text-sm group-hover:text-[var(--accent)] transition-colors">{c.name}</h3>
                       <span className={`badge ${c.status === 'active' ? 'badge-success' : 'badge-neutral'} mt-1`}>
                         {c.status === 'active' ? t('clients.active') : t('clients.inactive')}
                       </span>
@@ -108,46 +111,16 @@ export default function ClientsPage() {
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border-color)]">
                   <span className="text-xs text-[var(--text-muted)]">{c.cases} {t('nav.cases')}</span>
                   <div className="flex gap-1">
-                    <button onClick={() => { setSelectedClient(c); setShowModal(true) }} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]"><Eye className="w-4 h-4" /></button>
-                    <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]"><Edit3 className="w-4 h-4" /></button>
-                    <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={(e) => openEdit(e, c)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]"><Edit3 className="w-4 h-4" /></button>
+                    <button onClick={(e) => handleDelete(e, c.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
           {filtered.length === 0 && <p className="text-center py-8 text-[var(--text-muted)]">{t('common.noData')}</p>}
         </div>
       </div>
-
-      {showModal && selectedClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="glass-card w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('clients.name')}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)]"><X className="w-5 h-5 text-[var(--text-muted)]" /></button>
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                {selectedClient.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-              </div>
-              <div>
-                <h3 className="font-bold text-[var(--text-primary)]">{selectedClient.name}</h3>
-                <span className={`badge ${selectedClient.status === 'active' ? 'badge-success' : 'badge-neutral'}`}>
-                  {selectedClient.status === 'active' ? t('clients.active') : t('clients.inactive')}
-                </span>
-              </div>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('clients.email')}</span><span className="text-[var(--text-primary)]">{selectedClient.email}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('clients.phone')}</span><span className="text-[var(--text-primary)]">{selectedClient.phone}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('clients.company')}</span><span className="text-[var(--text-primary)]">{selectedClient.company}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('nav.cases')}</span><span className="text-[var(--text-primary)]">{selectedClient.cases}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('clients.joined')}</span><span className="text-[var(--text-primary)]">{selectedClient.joined}</span></div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowForm(false)}>

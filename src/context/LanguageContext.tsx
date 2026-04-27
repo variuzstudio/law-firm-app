@@ -190,6 +190,8 @@ const translations: Record<Language, Record<string, string>> = {
     'audio.copyText': 'Copy Text',
     'audio.export': 'Export',
     'audio.save': 'Save to Documents',
+    'audio.recordings': 'Recordings',
+    'audio.uploadTranscribeHint': 'For uploaded audio files, please use the Record feature for best results. The browser speech recognition works in real-time during recording.',
 
     'lawCompare.title': 'AI Law Article Comparator',
     'lawCompare.subtitle': 'Compare and analyze Indonesian law articles side by side',
@@ -429,6 +431,8 @@ const translations: Record<Language, Record<string, string>> = {
     'audio.copyText': 'Salin Teks',
     'audio.export': 'Ekspor',
     'audio.save': 'Simpan ke Dokumen',
+    'audio.recordings': 'Rekaman',
+    'audio.uploadTranscribeHint': 'Untuk file audio yang diunggah, gunakan fitur Rekam untuk hasil terbaik. Pengenalan suara browser bekerja secara real-time saat merekam.',
 
     'lawCompare.title': 'Komparator Pasal Hukum AI',
     'lawCompare.subtitle': 'Bandingkan dan analisis pasal hukum Indonesia secara berdampingan',

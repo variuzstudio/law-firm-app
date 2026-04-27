@@ -7,7 +7,6 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useData } from '@/context/DataContext'
 import AppLayout from '@/components/AppLayout'
 import { chatWithGemini } from '@/lib/gemini'
-import { getAiResponse } from '@/data/aiResponses'
 import {
   Briefcase, Users, Clock, ChevronRight, ArrowUpRight, ArrowDownRight,
   Send, Bot, User, Sparkles, AudioLines, BookOpenCheck, ScanText, Video, Calendar, FileText,
@@ -42,8 +41,9 @@ function AiChatWidget({ t }: { t: (k: string) => string }) {
       const history = messages.map((m) => ({ role: m.role, content: m.content }))
       const response = await chatWithGemini([...history, { role: 'user', content: userMsg }])
       setMessages((prev) => [...prev, { role: 'assistant', content: response }])
-    } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: getAiResponse(userMsg) }])
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown error'
+      setMessages((prev) => [...prev, { role: 'assistant', content: `⚠️ AI Error: ${errMsg}\n\nPlease try again or contact support.` }])
     }
     setIsTyping(false)
   }

@@ -6,9 +6,8 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
 import { compareLawArticles } from '@/lib/gemini'
-import { lawCompareResult } from '@/data/aiResponses'
 import {
-  BookOpenCheck, Plus, Trash2, Sparkles, CheckCircle2, XCircle, Lightbulb, Copy, Check,
+  BookOpenCheck, Plus, Trash2, Sparkles, Copy, Check,
 } from 'lucide-react'
 
 interface Article {
@@ -28,7 +27,6 @@ export default function LawComparePage() {
   ])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisText, setAnalysisText] = useState('')
-  const [result, setResult] = useState<typeof lawCompareResult | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -52,7 +50,6 @@ export default function LawComparePage() {
   const handleCompare = async () => {
     if (articles.some((a) => !a.content.trim())) return
     setIsAnalyzing(true)
-    setResult(null)
     setAnalysisText('')
 
     try {
@@ -62,20 +59,14 @@ export default function LawComparePage() {
       }))
       const response = await compareLawArticles(articlesForApi)
       setAnalysisText(response)
-    } catch {
-      await new Promise((r) => setTimeout(r, 1500))
-      setResult(lawCompareResult)
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown error'
+      setAnalysisText(`⚠️ Comparison Error: ${errMsg}\n\nPlease try again or contact support.`)
     }
     setIsAnalyzing(false)
   }
 
-  const getDisplayText = () => {
-    if (analysisText) return analysisText
-    if (result) {
-      return `PERSAMAAN:\n${result.similarities.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\nPERBEDAAN:\n${result.differences.map((d, i) => `${i + 1}. ${d}`).join('\n')}\n\nREKOMENDASI:\n${result.recommendation}`
-    }
-    return ''
-  }
+  const getDisplayText = () => analysisText
 
   const handleCopyResult = () => {
     const text = getDisplayText()
@@ -97,7 +88,7 @@ export default function LawComparePage() {
     }
   }
 
-  const hasResult = !!analysisText || !!result
+  const hasResult = !!analysisText
 
   return (
     <AppLayout>
@@ -174,48 +165,9 @@ export default function LawComparePage() {
               </div>
             </div>
 
-            {analysisText ? (
-              <div className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
-                {analysisText}
-              </div>
-            ) : result && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                    <h3 className="font-semibold text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2 mb-3">
-                      <CheckCircle2 className="w-4 h-4" /> {t('lawCompare.similarities')}
-                    </h3>
-                    <ul className="space-y-2">
-                      {result.similarities.map((s, i) => (
-                        <li key={i} className="text-sm text-[var(--text-secondary)] flex gap-2">
-                          <span className="text-emerald-500 flex-shrink-0 mt-1">&bull;</span> {s}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-                    <h3 className="font-semibold text-sm text-red-600 dark:text-red-400 flex items-center gap-2 mb-3">
-                      <XCircle className="w-4 h-4" /> {t('lawCompare.differences')}
-                    </h3>
-                    <ul className="space-y-2">
-                      {result.differences.map((d, i) => (
-                        <li key={i} className="text-sm text-[var(--text-secondary)] flex gap-2">
-                          <span className="text-red-500 flex-shrink-0 mt-1">&bull;</span> {d}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                  <h3 className="font-semibold text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-2">
-                    <Lightbulb className="w-4 h-4" /> {t('lawCompare.recommendation')}
-                  </h3>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{result.recommendation}</p>
-                </div>
-              </>
-            )}
+            <div className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
+              {analysisText}
+            </div>
           </div>
         )}
       </div>

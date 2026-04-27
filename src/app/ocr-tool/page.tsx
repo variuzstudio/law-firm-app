@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import AppLayout from '@/components/AppLayout'
 import { scanDocument } from '@/lib/gemini'
-import { ocrSampleResult } from '@/data/aiResponses'
 import {
   ScanText, Upload, Sparkles, Copy, Check, FileImage, FileText, Printer,
 } from 'lucide-react'
@@ -77,9 +76,9 @@ export default function OcrToolPage() {
       } else {
         throw new Error('No file data')
       }
-    } catch {
-      await new Promise((r) => setTimeout(r, 1500))
-      setResult(ocrSampleResult)
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown error'
+      setResult(`⚠️ OCR Error: ${errMsg}\n\nPlease try again or contact support.`)
     }
     setIsScanning(false)
   }

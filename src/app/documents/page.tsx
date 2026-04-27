@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useData } from '@/context/DataContext'
 import AppLayout from '@/components/AppLayout'
-import { documents as initialDocs } from '@/data/mockData'
+import Link from 'next/link'
 import {
-  Upload, Search, Download, Eye, Trash2, X, FileText, File, FileCheck, FilePlus2,
+  Upload, Search, Download, Trash2, X, FileText, File, FileCheck, FilePlus2,
   ChevronDown, FolderOpen, Printer,
 } from 'lucide-react'
 
@@ -30,11 +31,10 @@ const typeColors: Record<string, string> = {
 export default function DocumentsPage() {
   const { isAuthenticated, loading } = useAuth()
   const { t } = useLanguage()
+  const { documents: docsList, addDocument, deleteDocument } = useData()
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState('all')
-  const [docsList, setDocsList] = useState(initialDocs)
-  const [previewDoc, setPreviewDoc] = useState<typeof initialDocs[0] | null>(null)
   const [showUpload, setShowUpload] = useState(false)
   const [uploadName, setUploadName] = useState('')
   const [uploadType, setUploadType] = useState('contract')
@@ -52,23 +52,38 @@ export default function DocumentsPage() {
     return matchSearch && matchType
   })
 
-  const handleDelete = (id: number) => setDocsList(docsList.filter((d) => d.id !== id))
+  const handleDelete = (e: React.MouseEvent, id: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    deleteDocument(id)
+  }
 
   const handleUpload = () => {
     if (!uploadName) return
-    setDocsList([{
-      id: docsList.length + 1,
+    addDocument({
+      id: Date.now(),
       name: uploadName,
       type: uploadType,
       case: uploadCase || '-',
       size: '1.0 MB',
       modified: new Date().toISOString().split('T')[0],
       author: 'Ahmad Faisal',
-    }, ...docsList])
+    })
     setShowUpload(false)
     setUploadName('')
     setUploadType('contract')
     setUploadCase('')
+  }
+
+  const handlePrint = (e: React.MouseEvent, doc: typeof docsList[0]) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const w = window.open('', '_blank')
+    if (w) {
+      w.document.write(`<html><head><title>Salomo Partners - ${doc.name}</title><style>body{font-family:sans-serif;padding:40px;max-width:800px;margin:0 auto}h1{color:#1e3a5f;border-bottom:2px solid #3b82f6;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #eee}td:first-child{color:#666;width:140px}</style></head><body><h1>${doc.name}</h1><table><tr><td>Type</td><td>${doc.type}</td></tr><tr><td>Case</td><td>${doc.case}</td></tr><tr><td>Size</td><td>${doc.size}</td></tr><tr><td>Modified</td><td>${doc.modified}</td></tr><tr><td>Author</td><td>${doc.author}</td></tr></table><p style="margin-top:40px;color:#999;font-size:11px">Printed from Salomo Partners - ${new Date().toLocaleString()}</p></body></html>`)
+      w.document.close()
+      w.print()
+    }
   }
 
   return (
@@ -108,12 +123,12 @@ export default function DocumentsPage() {
               const Icon = typeIcons[doc.type] || FileText
               const colorClass = typeColors[doc.type] || 'text-gray-500 bg-gray-500/10'
               return (
-                <div key={doc.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-[var(--accent-light)] transition-colors group">
+                <Link key={doc.id} href={`/documents/${doc.id}`} className="flex items-center gap-4 p-3 rounded-xl hover:bg-[var(--accent-light)] transition-colors group">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-[var(--text-primary)] truncate">{doc.name}</h3>
+                    <h3 className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">{doc.name}</h3>
                     <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-xs text-[var(--text-muted)]">{doc.case}</span>
                       <span className="text-xs text-[var(--text-muted)]">{doc.size}</span>
@@ -121,42 +136,17 @@ export default function DocumentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setPreviewDoc(doc)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.preview')}><Eye className="w-4 h-4" /></button>
-                    <button onClick={() => { const w = window.open('', '_blank'); if (w) { w.document.write(`<html><head><title>Salomo Partners - ${doc.name}</title><style>body{font-family:sans-serif;padding:40px;max-width:800px;margin:0 auto}h1{color:#1e3a5f;border-bottom:2px solid #3b82f6;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin-top:16px}td{padding:8px;border-bottom:1px solid #eee}td:first-child{color:#666;width:140px}</style></head><body><h1>${doc.name}</h1><table><tr><td>Type</td><td>${doc.type}</td></tr><tr><td>Case</td><td>${doc.case}</td></tr><tr><td>Size</td><td>${doc.size}</td></tr><tr><td>Modified</td><td>${doc.modified}</td></tr><tr><td>Author</td><td>${doc.author}</td></tr></table><p style="margin-top:40px;color:#999;font-size:11px">Printed from Salomo Partners - ${new Date().toLocaleString()}</p></body></html>`); w.document.close(); w.print() } }} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.print')}><Printer className="w-4 h-4" /></button>
-                    <button className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.download')}><Download className="w-4 h-4" /></button>
-                    <button onClick={() => handleDelete(doc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500" title={t('cases.delete')}><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={(e) => handlePrint(e, doc)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.print')}><Printer className="w-4 h-4" /></button>
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation() }} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('docs.download')}><Download className="w-4 h-4" /></button>
+                    <button onClick={(e) => handleDelete(e, doc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500" title={t('cases.delete')}><Trash2 className="w-4 h-4" /></button>
                   </div>
-                </div>
+                </Link>
               )
             })}
           </div>
           {filtered.length === 0 && <p className="text-center py-8 text-[var(--text-muted)]">{t('common.noData')}</p>}
         </div>
       </div>
-
-      {previewDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setPreviewDoc(null)}>
-          <div className="glass-card w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('docs.preview')}</h2>
-              <button onClick={() => setPreviewDoc(null)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)]"><X className="w-5 h-5 text-[var(--text-muted)]" /></button>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('docs.name')}</span><span className="text-[var(--text-primary)] text-right max-w-[60%]">{previewDoc.name}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('docs.type')}</span><span className="text-[var(--text-primary)] capitalize">{previewDoc.type}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('docs.case')}</span><span className="text-[var(--text-primary)]">{previewDoc.case}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('docs.size')}</span><span className="text-[var(--text-primary)]">{previewDoc.size}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">{t('docs.modified')}</span><span className="text-[var(--text-primary)]">{previewDoc.modified}</span></div>
-              <div className="flex justify-between"><span className="text-[var(--text-muted)]">Author</span><span className="text-[var(--text-primary)]">{previewDoc.author}</span></div>
-              <div className="pt-3 border-t border-[var(--border-color)]">
-                <div className="h-32 rounded-xl bg-[var(--bg-input)] flex items-center justify-center">
-                  <FileText className="w-12 h-12 text-[var(--text-muted)]" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showUpload && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowUpload(false)}>

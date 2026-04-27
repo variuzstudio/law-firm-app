@@ -6,8 +6,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useData } from '@/context/DataContext'
 import AppLayout from '@/components/AppLayout'
+import Link from 'next/link'
 import {
-  Plus, Search, Filter, Eye, Edit3, Trash2, X, ChevronDown,
+  Plus, Search, Eye, Edit3, Trash2, X, ChevronDown,
 } from 'lucide-react'
 
 export default function CasesPage() {
@@ -17,8 +18,6 @@ export default function CasesPage() {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
-  const [selectedCase, setSelectedCase] = useState<typeof casesList[0] | null>(null)
-  const [showModal, setShowModal] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({ name: '', client: '', type: 'Corporate', priority: 'medium', description: '' })
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -137,22 +136,22 @@ export default function CasesPage() {
               </thead>
               <tbody>
                 {filtered.map((c) => (
-                  <tr key={c.id} className="table-row border-b border-[var(--border-color)] last:border-0">
+                  <tr key={c.id} className="table-row border-b border-[var(--border-color)] last:border-0 cursor-pointer" onClick={() => router.push(`/cases/${c.id}`)}>
                     <td className="py-3 px-3 font-mono text-xs text-[var(--accent)]">{c.id}</td>
-                    <td className="py-3 px-3 text-[var(--text-primary)] font-medium max-w-[200px] truncate">{c.name}</td>
+                    <td className="py-3 px-3 text-[var(--text-primary)] font-medium max-w-[200px] truncate hover:text-[var(--accent)] transition-colors">{c.name}</td>
                     <td className="py-3 px-3 text-[var(--text-secondary)] hidden md:table-cell">{c.client}</td>
                     <td className="py-3 px-3 text-[var(--text-secondary)] hidden sm:table-cell">{c.type}</td>
                     <td className="py-3 px-3"><span className={`badge ${statusColor[c.status]}`}>{statusLabel[c.status]}</span></td>
                     <td className="py-3 px-3 hidden lg:table-cell"><span className={`badge ${priorityColor[c.priority]}`}>{priorityLabel[c.priority]}</span></td>
                     <td className="py-3 px-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => { setSelectedCase(c); setShowModal(true) }} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('cases.view')}>
+                        <Link href={`/cases/${c.id}`} onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('cases.view')}>
                           <Eye className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('cases.edit')}>
+                        </Link>
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(c) }} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)] text-[var(--text-muted)] hover:text-[var(--accent)]" title={t('cases.edit')}>
                           <Edit3 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500" title={t('cases.delete')}>
+                        <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id) }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-500" title={t('cases.delete')}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -167,33 +166,6 @@ export default function CasesPage() {
           )}
         </div>
       </div>
-
-      {showModal && selectedCase && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="glass-card w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('cases.details')}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-[var(--accent-light)]">
-                <X className="w-5 h-5 text-[var(--text-muted)]" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between"><span className="text-sm text-[var(--text-muted)]">{t('cases.caseNumber')}</span><span className="text-sm font-mono text-[var(--accent)]">{selectedCase.id}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-[var(--text-muted)]">{t('cases.caseName')}</span><span className="text-sm font-medium text-[var(--text-primary)] text-right max-w-[60%]">{selectedCase.name}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-[var(--text-muted)]">{t('cases.client')}</span><span className="text-sm text-[var(--text-primary)]">{selectedCase.client}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-[var(--text-muted)]">{t('cases.type')}</span><span className="text-sm text-[var(--text-primary)]">{selectedCase.type}</span></div>
-              <div className="flex justify-between items-center"><span className="text-sm text-[var(--text-muted)]">{t('cases.status')}</span><span className={`badge ${statusColor[selectedCase.status]}`}>{statusLabel[selectedCase.status]}</span></div>
-              <div className="flex justify-between items-center"><span className="text-sm text-[var(--text-muted)]">{t('cases.priority')}</span><span className={`badge ${priorityColor[selectedCase.priority]}`}>{priorityLabel[selectedCase.priority]}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-[var(--text-muted)]">{t('cases.assignee')}</span><span className="text-sm text-[var(--text-primary)]">{selectedCase.assignee}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-[var(--text-muted)]">{t('cases.date')}</span><span className="text-sm text-[var(--text-primary)]">{selectedCase.date}</span></div>
-              <div className="pt-2 border-t border-[var(--border-color)]">
-                <p className="text-sm text-[var(--text-muted)] mb-1">{t('cases.description')}</p>
-                <p className="text-sm text-[var(--text-primary)]">{selectedCase.description}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowForm(false)}>
